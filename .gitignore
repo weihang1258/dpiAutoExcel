@@ -1,0 +1,14 @@
+# IDE
+.idea/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Log files
+log/
+
+# Excel temporary files
+~$*.xlsx
+*.tmp
