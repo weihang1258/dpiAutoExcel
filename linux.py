@@ -347,9 +347,9 @@ class Linux:
     def cleandir(self, path, key=None):
         try:
             if key is None:
-                str1 = "find . -name '*' ! -name '.' -exec rm -f {} \;"
+                str1 = r"find . -name '*' ! -name '.' -exec rm -f {} \;"
             else:
-                str1 = "find . -name '%s' -exec rm -f {} \;" % key
+                str1 = r"find . -name '%s' -exec rm -f {} \;" % key
             self.ssh.ssh_exec_cmd(cmd=str1, path=path)
         except Exception as e:
             print(e)

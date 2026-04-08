@@ -1,14 +1,29 @@
 # IDE
 .idea/
+.claude/
 
-# Python cache
+# Python
 __pycache__/
 *.pyc
 *.pyo
+venv/
+
+# Build
+build/
+dist/
+*.spec
+*.exe
 
 # Log files
 log/
+report/
 
 # Excel temporary files
 ~$*.xlsx
 *.tmp
+
+# Configuration
+versions.json
+
+# Test files
+test_*.py

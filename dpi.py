@@ -482,23 +482,34 @@ class Dpi(SocketLinux):
                 res.append(int(field))
         return res
 
-    def get_dpimode(self):
-        """获取dpi模式。如：com_cmcc_is"""
-        cmd = 'cat /opt/dpi/config/rule/dpiconfig.ok'
+    def get_dpimode(self, dpipath="/opt/dpi"):
+        """
+        获取dpi模式。如：com_cmcc_is
+
+        Args:
+            dpipath: DPI 程序路径，默认为 /opt/dpi
+
+        Returns:
+            str: DPI 模式，如 "com_cmcc_is"、"com_cucc_isbns"、"com_ctcc_isbns"
+                 如果无法获取模式，返回 None
+        """
+        cmd = f'cat {dpipath}/config/rule/dpiconfig.ok'
         try:
-            return re.match(r"(\w+?_\w+?_\w+?)(?=_|$)", self.cmd(cmd).strip()).group()
-        except Exception:
-            logger.error(
-                "/opt/dpi/config/rule/dpiconfig.ok中运营商配置信息缺少，请补充后再重新执行，内容如：com_cmcc_is、com_cucc_isbns、com_ctcc_isbns 等")
+            response = self.cmd(cmd).strip()
+            mode = re.match(r"(\w+?_\w+?_\w+?)(?=_|$)", response).group()
+            return mode
+        except Exception as e:
+            logger.warning(f"无法从 {dpipath}/config/rule/dpiconfig.ok 获取模式：{e}")
+            return None
 
     def get_dpiversion(self, dpipath="/opt/dpi"):
         """获取dpi版本"""
         cmd = f"cat ver.txt |head -n 1"
         response = self.cmd(cmd, cwd=dpipath).strip()
         if ":" in response:
-            return response.split(":")[-1].strip()
+            return response.split(":")[-1].strip().lstrip("V")
         else:
-            return response.split()[-1].strip()
+            return response.split()[-1].strip().lstrip("V")
 
     def get_pcicfg(self):
         """获取pcip配置信息"""
@@ -540,7 +551,7 @@ class Dpi(SocketLinux):
 
         for k, v in pcicfg.items():
             if k == "pci_list":
-                cmd = f"sed -i 's/^{k}.*/{k} {" ".join(v)}/' /opt/dpi/mconf/modelswitch/xsajson/pci.cfg"
+                cmd = f"sed -i 's/^{k}.*/{k} {' '.join(v)}/' /opt/dpi/mconf/modelswitch/xsajson/pci.cfg"
             else:
                 cmd = f"sed -i 's/^{k}.*/{k} {v}/' /opt/dpi/mconf/modelswitch/xsajson/pci.cfg"
             self.cmd(cmd)
@@ -548,7 +559,14 @@ class Dpi(SocketLinux):
     def dpibak(self, bakpath="/home/dpibak", dpipath="/opt/dpi", force=False):
         """
         备份dpi
-        :return:
+
+        Args:
+            bakpath: 备份目录路径
+            dpipath: DPI 程序路径
+            force: 是否强制备份（添加时间戳）
+
+        Returns:
+            str: 备份路径，如果备份失败或无模式信息则返回 None
         """
         if not self.isdir(dpipath):
             logger.warn("dpi不存在，不执行备份")
@@ -560,28 +578,325 @@ class Dpi(SocketLinux):
         get_version = self.get_dpiversion(dpipath=dpipath)
         if not get_version.strip():
             raise RuntimeError(f"dpi的版本号不存在，请检查")
+
+        # 从 DPI 目录中获取模式
+        get_mode = self.get_dpimode(dpipath=dpipath)
+
+        # 无模式信息，不备份
+        if not get_mode:
+            logger.warning(f"⚠ 无法获取 DPI 模式信息，不执行备份")
+            logger.warning(f"  → DPI 路径：{dpipath}")
+            logger.warning(f"  → 可能原因：未执行模式切换，或 dpiconfig.ok 文件不存在")
+            return None
+
+        logger.info(f"→ 获取到 DPI 模式：{get_mode}")
+
+        # 构建备份路径：包含版本号和模式
+        path_bak = f"{bakpath.rstrip('/')}/dpi_bak_{get_version}_{get_mode}"
+
+        # 如果强制备份，添加时间戳
         if force:
-            path_bak = f"{bakpath.rstrip("/")}/dpi_bak_{get_version}_{gettime(6)}"
-        else:
-            path_bak = f"{bakpath.rstrip("/")}/dpi_bak_{get_version}"
-            if self.isdir(path_bak):
-                logger.info(f"备份目录存在，不备份：{path_bak}")
-                return path_bak
+            path_bak = f"{path_bak}_{gettime(6)}"
+
+        # 检查备份是否已存在
+        if not force and self.isdir(path_bak):
+            logger.info(f"备份目录存在，不备份：{path_bak}")
+            return path_bak
+
+        # 执行备份
         logger.info(f"备份dpi程序到：{path_bak}")
         cmd = f"cp -r {dpipath} {path_bak}"
         self.cmd(cmd)
+
         if self.isdir(path_bak):
             logger.info(f"备份成功：{path_bak}")
             return path_bak
 
-    def upms_install(self, dpiversion, path, dpipath_bak=None, rmvarbak=True, xsa_modify_dict=None, timeout=5):
+    def is_agent_running(self):
+        """
+        检查 agent 是否正在运行
+
+        Returns:
+            bool: 正在运行返回 True，否则返回 False
+        """
+        # 通过 ps 命令检查 agent 进程
+        cmd = "ps -ef | grep '/opt/agent/agent' | grep -v grep"
+        response = self.cmd(cmd).strip()
+
+        if response:
+            # 解析进程信息
+            lines = response.split('\n')
+            for line in lines:
+                if '/opt/agent/agent' in line:
+                    # 提取 PID
+                    parts = line.split()
+                    if len(parts) >= 2:
+                        pid = parts[1]
+                        logger.debug(f"agent 正在运行，PID: {pid}")
+                        return True
+
+        return False
+
+    def start_agent(self, timeout=30):
+        """
+        启动 agent 进程
+
+        Args:
+            timeout: 等待启动的超时时间（秒）
+
+        Returns:
+            bool: 启动成功返回 True，失败返回 False
+        """
+        # 1. 检查 agent 是否已经运行
+        if self.is_agent_running():
+            logger.info("agent 已经在运行中，无需启动")
+            return True
+
+        # 2. 检查控制脚本是否存在
+        if not self.isfile("/etc/init.d/upms_agent_monitor"):
+            logger.warning("agent 控制脚本不存在：/etc/init.d/upms_agent_monitor")
+            return False
+
+        # 3. 执行启动命令（同步等待完成）
+        logger.info("启动 agent...")
+        cmd = "/etc/init.d/upms_agent_monitor start"
+        response = self.cmd(cmd,wait=False)
+        logger.info(response)
+
+        # 4. 等待进程启动
+        time_start = time.time()
+        while time.time() - time_start < timeout:
+            if self.is_agent_running():
+                logger.info("✓ agent 启动成功")
+                return True
+            time.sleep(1)
+
+        # 5. 超时失败
+        logger.error(f"✗ agent 启动超时（{timeout}s）")
+        return False
+
+    def stop_agent(self, timeout=30):
+        """
+        停止 agent 进程
+
+        Args:
+            timeout: 等待停止的超时时间（秒）
+
+        Returns:
+            bool: 停止成功返回 True，失败返回 False
+        """
+        # 1. 检查 agent 是否已经停止
+        if not self.is_agent_running():
+            logger.info("agent 已经停止，无需停止")
+            return True
+
+        # 2. 检查控制脚本是否存在
+        if not self.isfile("/etc/init.d/upms_agent_monitor"):
+            logger.warning("agent 控制脚本不存在：/etc/init.d/upms_agent_monitor")
+            return False
+
+        # 3. 执行停止命令（同步等待完成）
+        logger.info("停止 agent...")
+        cmd = "/etc/init.d/upms_agent_monitor stop"
+        response = self.cmd(cmd, wait=False)
+        logger.info(response)
+
+        # 4. 等待进程停止
+        time_start = time.time()
+        while time.time() - time_start < timeout:
+            if not self.is_agent_running():
+                logger.info("✓ agent 停止成功")
+                return True
+            time.sleep(1)
+
+        # 5. 超时失败，强制杀死进程
+        logger.warning(f"⚠ agent 停止超时（{timeout}s），尝试强制杀死进程")
+
+        # 先杀死主进程（upms_agent_monitor）
+        cmd = "pkill -9 -f 'upms_agent_monitor'"
+        self.cmd(cmd)
+        time.sleep(1)
+
+        # 再杀死子进程
+        cmd = "pkill -9 -f '/opt/agent/agent'"
+        self.cmd(cmd)
+        time.sleep(2)
+
+        # 6. 再次检查
+        if not self.is_agent_running():
+            logger.info("✓ agent 已强制停止")
+            return True
+        else:
+            logger.error("✗ agent 强制停止失败")
+            return False
+
+    def restart_agent(self, timeout=60):
+        """
+        重启 agent 进程
+
+        Args:
+            timeout: 等待重启的超时时间（秒）
+
+        Returns:
+            bool: 重启成功返回 True，失败返回 False
+        """
+        logger.info("重启 agent...")
+
+        # 1. 停止 agent
+        if not self.stop_agent(timeout=timeout // 2):
+            logger.error("✗ agent 停止失败，无法重启")
+            return False
+
+        # 2. 等待 2 秒确保完全停止
+        time.sleep(2)
+
+        # 3. 启动 agent
+        if not self.start_agent(timeout=timeout // 2):
+            logger.error("✗ agent 启动失败，重启失败")
+            return False
+
+        logger.info("✓ agent 重启成功")
+        return True
+
+    def wait_upgrade_system_complete(self, dpiversion, upgrade_start_timeout=300, upgrade_complete_timeout=1200):
+        """
+        等待升级系统完成升级
+
+        Args:
+            dpiversion: 目标版本号
+            upgrade_start_timeout: 升级脚本启动等待超时（秒）
+            upgrade_complete_timeout: 升级完成等待超时（秒）
+
+        Returns:
+            dict: {"result": bool, "mark": list}
+        """
+        result = {"result": True, "mark": []}
+        logger.info("→ 升级系统接管升级流程...")
+
+        # 删除旧的结果文件
+        logger.info("→ 清理旧的结果文件...")
+        self.cmd("rm -f /tmp/*.result")
+
+        # 启动 agent
+        logger.info("→ 启动 agent（升级系统接管）...")
+        if not self.start_agent():
+            logger.error("✗ agent 启动失败")
+            result["result"] = False
+            result["mark"].append("agent 启动失败")
+            return result
+
+        # 等待升级脚本启动
+        logger.info("→ 等待升级系统开始升级...")
+        time_start = time.time()
+        upgrade_started = False
+
+        while time.time() - time_start < upgrade_start_timeout:
+            cmd = "ps -ef | grep 'upms_install.sh' | grep -v grep"
+            response = self.cmd(cmd).strip()
+
+            if response:
+                logger.info("✓ 检测到升级脚本开始执行")
+                upgrade_started = True
+                break
+
+            time.sleep(2)
+
+        if not upgrade_started:
+            logger.error(f"✗ 升级脚本启动超时（{upgrade_start_timeout}s）")
+            result["result"] = False
+            result["mark"].append(f"升级脚本启动超时（{upgrade_start_timeout}s）")
+            self.stop_agent()
+            return result
+
+        # 等待升级脚本运行结束
+        logger.info(f"→ 等待升级脚本执行完成（最长 {upgrade_complete_timeout}s）...")
+        time_start = time.time()
+        upgrade_completed = False
+
+        while time.time() - time_start < upgrade_complete_timeout:
+            cmd = "ps -ef | grep 'upms_install.sh' | grep -v grep"
+            response = self.cmd(cmd).strip()
+
+            if not response:
+                logger.info("✓ 升级脚本已执行完成")
+                upgrade_completed = True
+                break
+
+            time.sleep(5)
+
+        if not upgrade_completed:
+            logger.error(f"✗ 升级脚本执行超时（{upgrade_complete_timeout}s）")
+            result["result"] = False
+            result["mark"].append(f"升级脚本执行超时（{upgrade_complete_timeout}s）")
+            self.stop_agent()
+            return result
+
+        # 查找结果文件
+        logger.info("→ 查找升级结果文件...")
+        time.sleep(2)  # 等待文件写入完成
+        cmd = "ls -t /tmp/*.result 2>/dev/null | head -n 1"
+        result_file = self.cmd(cmd).strip()
+
+        if not result_file:
+            logger.error("✗ 未找到升级结果文件")
+            result["result"] = False
+            result["mark"].append("未找到升级结果文件")
+            self.stop_agent()
+            return result
+
+        logger.info(f"✓ 找到结果文件：{result_file}")
+
+        # 检查升级结果
+        logger.info("→ 检查升级结果...")
+        cmd = f"cat {result_file}"
+        response = self.cmd(cmd).strip()
+
+        lines = response.split('\n')
+        if len(lines) >= 2:
+            status_code = lines[0].strip()
+            status_message = lines[1].strip()
+
+            logger.info(f"  → 状态码：{status_code}")
+            logger.info(f"  → 状态信息：{status_message}")
+
+            if status_code == "0":
+                logger.info("✓ 升级成功")
+            else:
+                logger.error(f"✗ 升级失败：{status_message}")
+                result["result"] = False
+                result["mark"].append(f"升级失败：{status_message}")
+                self.stop_agent()
+                return result
+        else:
+            logger.error("✗ 结果文件格式错误")
+            result["result"] = False
+            result["mark"].append("结果文件格式错误")
+            self.stop_agent()
+            return result
+
+        # 停止 agent
+        logger.info("→ 停止 agent...")
+        self.stop_agent()
+
+        return result
+
+    def upms_install(self, dpiversion, path, dpipath_bak=None, rmvarbak=False, xsa_modify_dict=None, timeout=5, use_upgrade_system=False, upgrade_start_timeout=300, upgrade_complete_timeout=1200):
         """
         安装upms
-        :param dpiversion:
-        :param path:
-        :param xsa_modify_dict:xsa修改项，{"dpi.vlan_multiplexing": 2, "flow.ipv4_hash_ksize": 302}
-        :param timeout:
-        :return:
+
+        Args:
+            dpiversion: 目标版本号
+            path: 升级脚本路径
+            dpipath_bak: 备份目录路径
+            rmvarbak: 是否删除/var/dpi下的备份（默认 False）
+            xsa_modify_dict: xsa修改项，{"dpi.vlan_multiplexing": 2, "flow.ipv4_hash_ksize": 302}
+            timeout: 等待启动超时时间
+            use_upgrade_system: 是否启用升级系统
+            upgrade_start_timeout: 升级脚本启动等待超时（秒）
+            upgrade_complete_timeout: 升级完成等待超时（秒）
+
+        Returns:
+            dict: {"result": bool, "mark": list}
         """
         result = {"result": True, "mark": []}
         logger.info(f"dpi程序升级：{path}")
@@ -597,18 +912,115 @@ class Dpi(SocketLinux):
             # 备份dpi
             self.dpibak(bakpath=dpipath_bak)
 
-            # 删除var目录下的dpi
+            # 删除var目录下的dpi（默认关闭）
             if rmvarbak:
                 tmpdir = "/var/dpi/dpi." + dpiversion[1:].replace(".", "")
                 logger.info(f"删除var目录下备份同名dpi目录：{tmpdir}")
                 self.rm(tmpdir)
 
-            # 升级
-            logger.info(f"开始升级：{path}")
-            dir, basename = os.path.split(path)
-            response = self.cmd(["sudo", "bash", basename], cwd=dir, shell=False, bufsize=40960)
-            logger.info(response)
-            logger.info("开始完成")
+            # ==================== 升级系统接管 ====================
+            if use_upgrade_system:
+                # 启动 agent
+                logger.info("→ 启动 agent（升级系统接管）...")
+                if not self.start_agent():
+                    logger.error("✗ agent 启动失败")
+                    result["result"] = False
+                    result["mark"].append("agent 启动失败")
+                    return result
+
+                # 等待升级脚本启动
+                logger.info("→ 等待升级系统接管升级...")
+                time_start = time.time()
+                upgrade_started = False
+
+                while time.time() - time_start < upgrade_start_timeout:
+                    cmd = "ps -ef | grep 'upms_install.sh' | grep -v grep"
+                    response = self.cmd(cmd).strip()
+
+                    if response:
+                        logger.info("✓ 检测到升级脚本开始执行")
+                        upgrade_started = True
+                        break
+
+                    time.sleep(2)
+
+                if not upgrade_started:
+                    logger.error(f"✗ 升级脚本启动超时（{upgrade_start_timeout}s）")
+                    result["result"] = False
+                    result["mark"].append(f"升级脚本启动超时（{upgrade_start_timeout}s）")
+                    self.stop_agent()
+                    return result
+
+                # 等待升级完成
+                logger.info(f"→ 等待升级完成（最长 {upgrade_complete_timeout}s）...")
+                dir_name = os.path.basename(os.path.dirname(path))
+                result_file = f"/tmp/{dir_name}.result"
+
+                time_start = time.time()
+                upgrade_completed = False
+
+                while time.time() - time_start < upgrade_complete_timeout:
+                    if self.isfile(result_file):
+                        logger.info(f"✓ 检测到升级结果文件：{result_file}")
+                        upgrade_completed = True
+                        break
+
+                    cmd = "ps -ef | grep 'upms_install.sh' | grep -v grep"
+                    response = self.cmd(cmd).strip()
+
+                    if not response:
+                        logger.warning("⚠ 升级脚本已结束，但未找到结果文件")
+                        break
+
+                    time.sleep(5)
+
+                if not upgrade_completed:
+                    logger.error(f"✗ 升级完成超时（{upgrade_complete_timeout}s）")
+                    result["result"] = False
+                    result["mark"].append(f"升级完成超时（{upgrade_complete_timeout}s）")
+                    self.stop_agent()
+                    return result
+
+                # 检查升级结果
+                logger.info("→ 检查升级结果...")
+                cmd = f"cat {result_file}"
+                response = self.cmd(cmd).strip()
+
+                lines = response.split('\n')
+                if len(lines) >= 2:
+                    status_code = lines[0].strip()
+                    status_message = lines[1].strip()
+
+                    logger.info(f"  → 状态码：{status_code}")
+                    logger.info(f"  → 状态信息：{status_message}")
+
+                    if status_code == "0":
+                        logger.info("✓ 升级成功")
+                    else:
+                        logger.error(f"✗ 升级失败：{status_message}")
+                        result["result"] = False
+                        result["mark"].append(f"升级失败：{status_message}")
+                        self.stop_agent()
+                        return result
+                else:
+                    logger.error("✗ 结果文件格式错误")
+                    result["result"] = False
+                    result["mark"].append("结果文件格式错误")
+                    self.stop_agent()
+                    return result
+
+                # 停止 agent
+                logger.info("→ 停止 agent...")
+                self.stop_agent()
+
+            # ==================== 当前升级流程 ====================
+            else:
+                # 升级
+                logger.info(f"开始升级：{path}")
+                dir, basename = os.path.split(path)
+                response = self.cmd(["sudo", "bash", basename], cwd=dir, shell=False, bufsize=40960)
+                logger.info(response)
+                logger.info("开始完成")
         else:
             raise Exception("无dpi程序，无法升级")
 
@@ -618,7 +1030,8 @@ class Dpi(SocketLinux):
             result["mark"].append(f"DPI启动等待{timeout}s超时失败")
             return result
 
-        if "升级成功" not in response:
+        # 检查升级结果（仅当前升级流程需要）
+        if not use_upgrade_system and "升级成功" not in response:
             result["result"] = False
             result["mark"].append(f"升级失败")
 
@@ -912,7 +1325,12 @@ def get_xdrtxtlog2name_frommarex(marex):
 
 if __name__ == '__main__':
     # ssh = SSHManager(host="172.31.140.173", user="root", passwd="yahong123&", port=22)
-    a = Dpi(("10.12.131.82", 9000))
+    a = Dpi(("10.12.131.32", 9000))
+    print(a.is_agent_running())
+    # print(a.start_agent())
+    # print(a.is_agent_running())
+    # print(a.stop_agent())
+    # print(a.is_agent_running())
     # logger.info([a.listdir(path="/home/dpibak", args="-type f -name ver.txt", maxdepth=2)])
     # xdr_template_json_s = a.json_get("/opt/dpi/xdrconf/rule/xdr_template.json")
     # dpimode = a.get_dpimode()

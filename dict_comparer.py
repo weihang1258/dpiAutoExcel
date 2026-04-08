@@ -54,7 +54,8 @@ class DictComparer:
             else:
                 for field in fields[:-1]:
                     if field.endswith("]"):
-                        pattern += f"{field.replace("[", r"\[").replace("]", r"\]")}."
+                        escaped_field = field.replace("[", r"\[").replace("]", r"\]")
+                        pattern += f"{escaped_field}."
                     else:
                         pattern += field + r"(?:\[\d+?\])*\."
                 pattern += fields[-1]
@@ -71,7 +72,8 @@ class DictComparer:
             else:
                 for field in fields[:-1]:
                     if field.endswith("]"):
-                        pattern += f"{field.replace("[", r"\[").replace("]", r"\]")}."
+                        escaped_field = field.replace("[", r"\[").replace("]", r"\]")
+                        pattern += f"{escaped_field}."
                     else:
                         pattern += field + r"(?:\[\d+?\])*\."
                 pattern += fields[-1]
@@ -89,7 +91,8 @@ class DictComparer:
             else:
                 for field in fields[:-1]:
                     if field.endswith("]"):
-                        pattern += f"{field.replace("[", r"\[").replace("]", r"\]")}."
+                        escaped_field = field.replace("[", r"\[").replace("]", r"\]")
+                        pattern += f"{escaped_field}."
                     else:
                         pattern += field + r"(?:\[\d+?\])*\."
                 pattern += fields[-1]
