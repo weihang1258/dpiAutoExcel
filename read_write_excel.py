@@ -16,27 +16,36 @@ def parser_excel(path="用例.xlsx"):
 
     # 获取配置信息
     config = xls.get_config_from_book("配置")
+
     # 获取设备初始化配置
     name_tmp = None
     type_tmp = None
     config_dev = dict()
-    for name, lines in xls.head2value(sheet_index="设备初始化配置", keys=["配置名称"]).items():
-        if name:
-            name_tmp = name
-        if name_tmp not in config_dev:
-            config_dev[name_tmp] = dict()
-        for line in lines:
-            # print(line["配置类型"])
-            if line["配置类型"]:
-                type_tmp = line["配置类型"]
-            if type_tmp not in config_dev[name_tmp]:
-                config_dev[name_tmp][type_tmp] = dict()
 
-            key = line["配置项"]
-            val = line["配置值"]
-            val = int(val) if type(val) in (int, float) and int(val) == val else val
-            # print(name_tmp,type_tmp,key,val)
-            config_dev[name_tmp][type_tmp][key] = val
+    # 尝试读取"设备初始化配置"sheet，如果不存在则跳过
+    try:
+        for name, lines in xls.head2value(sheet_index="设备初始化配置", keys=["配置名称"]).items():
+            if name:
+                name_tmp = name
+            if name_tmp not in config_dev:
+                config_dev[name_tmp] = dict()
+            for line in lines:
+                # print(line["配置类型"])
+                if line["配置类型"]:
+                    type_tmp = line["配置类型"]
+                if type_tmp not in config_dev[name_tmp]:
+                    config_dev[name_tmp][type_tmp] = dict()
+
+                key = line["配置项"]
+                val = line["配置值"]
+                val = int(val) if type(val) in (int, float) and int(val) == val else val
+                # print(name_tmp,type_tmp,key,val)
+                config_dev[name_tmp][type_tmp][key] = val
+    except Exception as e:
+        # 如果"设备初始化配置"sheet 不存在，记录日志并继续执行
+        logging.warning(f"未找到'设备初始化配置'sheet 或读取失败：{e}")
+        config_dev = dict()
+
     # print(config_dev)
 
     # 获取用例信息
@@ -45,18 +54,22 @@ def parser_excel(path="用例.xlsx"):
     sheet_name2heads = dict()
     for sheet_name in xls.workbook.sheet_names:
         if sheet_name not in ("配置", "设备初始化配置", "IP规范"):
-            cases = dict()
-            case_name = None
-            for key, val in xls.head2value(sheet_index=sheet_name, keys=["用例名"]).items():
-                # print([key, val], '\n')
-                if key and key != "None":
-                    case_name = key
-                cases[case_name] = val
-            sheet_name2cases[sheet_name] = cases
-            head_list = xls.list_rstrip(xls.row_values(sheet_index=sheet_name))
-            head2col = dict(map(lambda x: list(x)[::-1], list(enumerate(head_list))))
-            sheet_name2head2col[sheet_name] = head2col
-            sheet_name2heads[sheet_name] = head_list
+            try:
+                cases = dict()
+                case_name = None
+                for key, val in xls.head2value(sheet_index=sheet_name, keys=["用例名"]).items():
+                    # print([key, val], '\n')
+                    if key and key != "None":
+                        case_name = key
+                    cases[case_name] = val
+                sheet_name2cases[sheet_name] = cases
+                head_list = xls.list_rstrip(xls.row_values(sheet_index=sheet_name))
+                head2col = dict(map(lambda x: list(x)[::-1], list(enumerate(head_list))))
+                sheet_name2head2col[sheet_name] = head2col
+                sheet_name2heads[sheet_name] = head_list
+            except KeyError as e:
+                logging.warning(f"Sheet '{sheet_name}' 缺少必要的列: {e}，跳过该 sheet")
+                continue
     xls.close()
     del xls
     return {"config": config, "sheet_name2cases": sheet_name2cases, "sheet_name2head2col": sheet_name2head2col, "sheet_name2heads": sheet_name2heads, "config_dev": config_dev}

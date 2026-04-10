@@ -40,7 +40,25 @@ def get_release_path_info(
         dict: 包含 success, data, error 等字段
     """
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=headless)
+        # 优先使用 Chrome，如果不存在则尝试 Edge，最后使用 Chromium
+        browser = None
+        for channel in ["chrome", "msedge", "chromium"]:
+            try:
+                browser = p.chromium.launch(
+                    headless=headless,
+                    channel=channel  # 使用系统浏览器
+                )
+                if verbose:
+                    print(f"使用浏览器: {channel}")
+                break
+            except Exception as e:
+                if verbose:
+                    print(f"尝试 {channel} 失败: {str(e)[:100]}")
+                continue
+
+        if not browser:
+            raise RuntimeError("未找到可用的浏览器，请安装 Chrome 或 Edge")
+
         context = browser.new_context(ignore_https_errors=True)
         page = context.new_page()
 
@@ -86,7 +104,25 @@ def get_multiple_projects_release_paths(
     all_results = {}
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=headless)
+        # 优先使用 Chrome，如果不存在则尝试 Edge，最后使用 Chromium
+        browser = None
+        for channel in ["chrome", "msedge", "chromium"]:
+            try:
+                browser = p.chromium.launch(
+                    headless=headless,
+                    channel=channel  # 使用系统浏览器
+                )
+                if verbose:
+                    print(f"使用浏览器: {channel}")
+                break
+            except Exception as e:
+                if verbose:
+                    print(f"尝试 {channel} 失败: {str(e)[:100]}")
+                continue
+
+        if not browser:
+            raise RuntimeError("未找到可用的浏览器，请安装 Chrome 或 Edge")
+
         context = browser.new_context(ignore_https_errors=True)
         page = context.new_page()
 
@@ -498,7 +534,14 @@ def _extract_single_project(page: Page, project_name: str, debug: bool, verbose:
             release_path = release_path_cell.get_text(strip=True)
 
             if title:
-                data[title] = release_path
+                # 如果标题已存在且新路径不为空，直接替换
+                if title in data:
+                    if release_path:  # 新路径不为空，直接替换
+                        data[title] = release_path
+                    # 如果新路径为空，保持原有路径不变
+                else:
+                    # 标题不存在，直接添加
+                    data[title] = release_path
                 log_step(f"提取记录：{title[:50]}...")
 
         if data:
@@ -543,7 +586,7 @@ def process_release_data(raw_data: dict) -> dict:
         处理后的数据，格式为 {version: [path1, path2, ...]}
     """
     # 版本号正则：从路径中匹配 EU- 或 ISE- 后面的版本号
-    version_pattern = re.compile(r'(?:EU-|ISE-)(\d+\.\d+\.\d+\.\d+-[^_]+)_202')
+    version_pattern = re.compile(r'(?:EU-|ISE-|NSE-|DSE-)(\d+\.\d+\.\d+\.\d+-[^_]+)_202')
 
     processed = {}
 
@@ -667,20 +710,34 @@ def save_versions_to_json(
 
     # 3. 根据格式处理数据
     if is_multi_project:
-        # 多项目格式：直接保存整个结构
-        new_category_data = version_data
+        # 多项目格式：过滤空数据后再保存
+        new_category_data = {}
 
         # 收集所有版本号
         all_versions_set = set()
+
         for project_name, project_versions in version_data.items():
-            for version in project_versions.keys():
-                all_versions_set.add(version)
+            # 过滤空项目
+            if not project_versions:
+                continue
+
+            # 过滤空版本
+            filtered_versions = {}
+            for version, paths in project_versions.items():
+                # 过滤空路径列表
+                if paths and len(paths) > 0:
+                    filtered_versions[version] = paths
+                    all_versions_set.add(version)
+
+            # 只保存有数据的项目
+            if filtered_versions:
+                new_category_data[project_name] = filtered_versions
 
         result["all_versions"] = sorted(list(all_versions_set))
         result["summary"]["total_versions"] = len(all_versions_set)
 
         # 对比每个项目的每个版本
-        for project_name, project_versions in version_data.items():
+        for project_name, project_versions in new_category_data.items():
             old_project_data = old_category_data.get(project_name, {})
 
             for version, new_paths in project_versions.items():
@@ -710,15 +767,23 @@ def save_versions_to_json(
                         result["changes"]["unchanged_versions"].append(version_key)
                         result["summary"]["unchanged_count"] += 1
     else:
-        # 单项目格式：{version: [paths]}
-        new_category_data = version_data
+        # 单项目格式：过滤空数据后再保存
+        new_category_data = {}
 
         # 收集所有版本号
-        result["all_versions"] = sorted(list(version_data.keys()))
-        result["summary"]["total_versions"] = len(version_data)
+        all_versions_set = set()
+
+        for version, paths in version_data.items():
+            # 过滤空路径列表
+            if paths and len(paths) > 0:
+                new_category_data[version] = paths
+                all_versions_set.add(version)
+
+        result["all_versions"] = sorted(list(all_versions_set))
+        result["summary"]["total_versions"] = len(all_versions_set)
 
         # 对比新旧数据
-        for version, new_paths in version_data.items():
+        for version, new_paths in new_category_data.items():
             new_paths_set = set(new_paths)
 
             if version not in old_category_data:
@@ -744,8 +809,45 @@ def save_versions_to_json(
                     result["changes"]["unchanged_versions"].append(version)
                     result["summary"]["unchanged_count"] += 1
 
-    # 4. 合并数据（新数据覆盖旧数据）
-    existing_data[category] = new_category_data
+    # 4. 合并数据（以版本号为维度，追加不同的路径）
+    if is_multi_project:
+        # 多项目格式：合并每个项目下的每个版本
+        merged_category_data = old_category_data.copy()
+
+        for project_name, project_versions in new_category_data.items():
+            if project_name not in merged_category_data:
+                # 新项目，直接添加
+                merged_category_data[project_name] = project_versions
+            else:
+                # 已存在的项目，合并版本
+                old_project_data = merged_category_data[project_name]
+
+                for version, new_paths in project_versions.items():
+                    if version not in old_project_data:
+                        # 新版本，直接添加
+                        old_project_data[version] = new_paths
+                    else:
+                        # 已存在的版本，合并路径（去重）
+                        old_paths = old_project_data[version]
+                        merged_paths = list(set(old_paths + new_paths))
+                        old_project_data[version] = merged_paths
+
+        existing_data[category] = merged_category_data
+    else:
+        # 单项目格式：合并每个版本的路径
+        merged_category_data = old_category_data.copy()
+
+        for version, new_paths in new_category_data.items():
+            if version not in merged_category_data:
+                # 新版本，直接添加
+                merged_category_data[version] = new_paths
+            else:
+                # 已存在的版本，合并路径（去重）
+                old_paths = merged_category_data[version]
+                merged_paths = list(set(old_paths + new_paths))
+                merged_category_data[version] = merged_paths
+
+        existing_data[category] = merged_category_data
 
     # 5. 保存到 JSON 文件
     try:
@@ -769,8 +871,7 @@ if __name__ == "__main__":
     print("示例2: 提取多个项目")
     print("-" * 60)
     projects = [
-        "信息安全执行单元V1.0.5.0（信安EU）",
-        "信息安全执行单元V1.0.7.0"
+        "网络安全执行单元V1.0.6.0"
     ]
 
     results = get_multiple_projects_release_paths(
@@ -783,4 +884,4 @@ if __name__ == "__main__":
     print("\n多个项目结果:")
     print(json.dumps(results, ensure_ascii=False, indent=2))
 
-    print(save_versions_to_json(version_data=results, category="信息安全执行单元", json_file="versions.json"))
+    print(save_versions_to_json(version_data=results, category="网络安全执行单元", json_file="versions.json"))

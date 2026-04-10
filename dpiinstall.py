@@ -40,6 +40,87 @@ def get_display_width(text):
     return width
 
 
+def parse_version(version_str: str) -> tuple:
+    """
+    解析版本号字符串为可比较的元组
+
+    支持格式：
+        - "1.0.6.2-4" -> (1, 0, 6, 2, 4, 0, 0)  # 最后一位 0 表示正式版
+        - "1.0.6.0-4-patch-1" -> (1, 0, 6, 0, 4, 1, 1)  # 倒数第二位 1 表示 patch
+
+    Args:
+        version_str: 版本号字符串
+
+    Returns:
+        可比较的元组
+    """
+    # 定义字母标识符权重
+    letter_weights = {
+        'alpha': -3,
+        'beta': -2,
+        'rc': -1,
+        'patch': 1
+    }
+
+    # 分割版本号
+    # 1.0.6.2-4 -> [1, 0, 6, 2, 4]
+    # 1.0.6.0-4-patch-1 -> [1, 0, 6, 0, 4, 'patch', 1]
+    parts = []
+    for part in re.split(r'[.\-]', version_str):
+        if part.isdigit():
+            parts.append(int(part))
+        elif part in letter_weights:
+            parts.append(letter_weights[part])
+        else:
+            parts.append(0)  # 未知标识符
+
+    # 补齐长度，确保所有版本号元组长度一致（最多7位）
+    while len(parts) < 7:
+        parts.append(0)
+
+    return tuple(parts)
+
+
+def compare_versions(v1: str, v2: str) -> int:
+    """
+    比较两个版本号
+
+    Args:
+        v1: 版本号1
+        v2: 版本号2
+
+    Returns:
+        -1 (v1 < v2), 0 (v1 == v2), 1 (v1 > v2)
+    """
+    parsed_v1 = parse_version(v1)
+    parsed_v2 = parse_version(v2)
+
+    if parsed_v1 < parsed_v2:
+        return -1
+    elif parsed_v1 > parsed_v2:
+        return 1
+    else:
+        return 0
+
+
+def get_highest_version(versions: list) -> str:
+    """
+    从版本号列表中提取最高版本
+
+    Args:
+        versions: 版本号列表
+
+    Returns:
+        最高版本号字符串
+    """
+    if not versions:
+        return ""
+
+    # 使用 sorted 排序，取最后一个（最高版本）
+    sorted_versions = sorted(versions, key=lambda v: parse_version(v))
+    return sorted_versions[-1]
+
+
 def get_category_by_mode(mode: str) -> str:
     """
     根据 DPI 模式后缀映射到分类名称
@@ -77,6 +158,163 @@ def get_category_by_mode(mode: str) -> str:
         raise ValueError(f"无法识别的模式后缀：{mode_suffix}，完整模式：{mode}")
 
     return category
+
+
+def get_mod_switch_args(mode: str, mod_switch_version: str = "idc31") -> tuple:
+    """
+    根据模式获取 mod_switch 的 args 参数
+
+    Args:
+        mode: DPI 模式，如 "com_cmcc_is"、"com_cmcc_ds"
+        mod_switch_version: mod_switch 版本，默认 "idc31"
+
+    Returns:
+        args 参数元组
+    """
+    if mode is None:
+        return (mod_switch_version,)
+
+    # 提取模式后缀
+    mode_suffix = mode.split("_")[-1] if "_" in mode else mode
+
+    # 如果是 ds 模式，返回 (mod_switch_version, "eu")
+    if mode_suffix == "ds":
+        return (mod_switch_version, "eu")
+    else:
+        return (mod_switch_version,)
+
+
+def get_target_version(sheet_name: str, category: str, config: dict, mode: str, rdm_refreshed: dict) -> str:
+    """
+    获取目标版本号
+
+    Args:
+        sheet_name: 当前 sheet 名称
+        category: 分类名称
+        config: 配置字典
+        mode: DPI 模式
+        rdm_refreshed: 临时记忆字典，格式：{"信息安全执行单元": True, ...}
+
+    Returns:
+        版本号字符串
+    """
+    # 1. 构建配置参数名称
+    config_key = f"{sheet_name}_target_version_{category}"
+
+    # 2. 从配置中读取
+    target_version = config.get(config_key, "")
+
+    # 3. 如果配置为空，自动获取最高版本
+    if not target_version:
+        # 3.1 检查该分类是否已刷新过 RDM
+        if rdm_refreshed.get(category, False):
+            # 已刷新过，直接从 versions.json 读取
+            logger.info(f"→ 分类 {category} 已刷新过 RDM，直接从 versions.json 读取最高版本")
+        else:
+            # 未刷新过，从 RDM 刷新 versions.json
+            logger.info(f"→ 分类 {category} 首次遇到，从 RDM 刷新 versions.json")
+
+            # 获取项目列表
+            config_key_projects = f"{sheet_name}_projects_{category}"
+            projects_str = config.get(config_key_projects, "")
+            project_list = [p.strip() for p in projects_str.split("\n") if p.strip()]
+
+            if not project_list:
+                logger.error(f"✗ 未配置项目列表：{config_key_projects}")
+                raise ValueError(f"未配置项目列表：{config_key_projects}")
+
+            # 获取 RDM 配置
+            rdm_base_url = config.get(f"{sheet_name}_base_url", "https://10.128.4.196:2000")
+            rdm_username = config.get(f"{sheet_name}_username", "weihang")
+            rdm_password = config.get(f"{sheet_name}_password", "Qq111222")
+
+            # 执行刷新
+            from extract_release_path import get_multiple_projects_release_paths, save_versions_to_json
+
+            logger.info(f"→ 开始从 RDM 平台提取版本信息...")
+            results = get_multiple_projects_release_paths(
+                projects=project_list,
+                base_url=rdm_base_url,
+                username=rdm_username,
+                password=rdm_password,
+                headless=True,
+                debug=False,
+                verbose=True
+            )
+
+            logger.info(f"✓ 提取完成，共 {len(results)} 个项目")
+
+            # 保存到 versions.json
+            json_file = "versions.json"
+            save_result = save_versions_to_json(
+                version_data=results,
+                category=category,
+                json_file=json_file
+            )
+
+            logger.info(f"✓ versions.json 更新完成")
+
+            # 标记为已刷新
+            rdm_refreshed[category] = True
+
+        # 3.2 从 versions.json 读取该分类下所有版本
+        json_file = "versions.json"
+        if not os.path.exists(json_file):
+            logger.error(f"✗ versions.json 文件不存在")
+            raise FileNotFoundError(f"versions.json 文件不存在")
+
+        with open(json_file, "r", encoding="utf-8") as f:
+            versions_data = json.load(f)
+
+        # 3.3 提取该分类下所有版本号
+        if category not in versions_data:
+            logger.error(f"✗ versions.json 中未找到分类：{category}")
+            raise ValueError(f"versions.json 中未找到分类：{category}")
+
+        category_data = versions_data[category]
+
+        # 收集所有版本号
+        all_versions = []
+        for project_name, project_versions in category_data.items():
+            all_versions.extend(project_versions.keys())
+
+        # 去重
+        all_versions = list(set(all_versions))
+
+        if not all_versions:
+            logger.error(f"✗ 分类 {category} 下没有任何版本")
+            raise ValueError(f"分类 {category} 下没有任何版本")
+
+        # 3.4 提取最高版本号
+        target_version = get_highest_version(all_versions)
+        logger.info(f"✓ 自动获取最高版本：{target_version}")
+
+    return target_version
+
+
+def resolve_version_target(version: str, mode: str, sheet_name: str, config: dict, rdm_refreshed: dict) -> str:
+    """
+    解析版本号，如果是 target_version 则替换为实际版本号
+
+    Args:
+        version: 版本号（可能是 "target_version" 或具体版本号）
+        mode: DPI 模式
+        sheet_name: 当前 sheet 名称
+        config: 配置字典
+        rdm_refreshed: 临时记忆字典，记录每个分类是否已刷新过 RDM
+
+    Returns:
+        实际版本号
+    """
+    # 如果不是 target_version，直接返回
+    if version != "target_version":
+        return version
+
+    # 根据 mode 判断分类
+    category = get_category_by_mode(mode)
+
+    # 获取目标版本（传入 rdm_refreshed）
+    return get_target_version(sheet_name, category, config, mode, rdm_refreshed)
 
 
 def get_ftp_path_from_json(
@@ -131,13 +369,15 @@ def get_ftp_path_from_json(
             if not paths or len(paths) == 0:
                 continue
 
-            # 6. 仅匹配程序包（ACT-DPI-ISE-、ACT-DPI-EU- 前缀）
+            # 6. 仅匹配程序包（ACT-DPI-ISE-、ACT-DPI-NSE-、ACT-DPI-DSE-、ACT-DPI-EU- 前缀）
             # 程序包格式：ACT-DPI-ISE-1.0.4.8-3_20250320164434.tar.gz
             #           ACT-DPI-EU-1.0.6.2-4_20260331134807.tar.gz
 
             # 定义程序包前缀（仅这2种）
             program_package_prefixes = [
                 "ACT-DPI-ISE-",
+                "ACT-DPI-NSE-",
+                "ACT-DPI-DSE-",
                 "ACT-DPI-EU-"
             ]
 
@@ -156,7 +396,7 @@ def get_ftp_path_from_json(
                         return path
 
             # 7. 未找到程序包，返回空字符串
-            logger.warning(f"  ⚠ 版本 {version} 未找到程序包（仅支持 ACT-DPI-ISE- 和 ACT-DPI-EU- 前缀）")
+            logger.warning(f"  ⚠ 版本 {version} 未找到程序包（仅支持 ACT-DPI-ISE-、ACT-DPI-NSE-、ACT-DPI-DSE-和 ACT-DPI-EU- 前缀）")
             return ""
 
     # 8. 未找到版本
@@ -336,6 +576,28 @@ def dpi_install(
             }
         },
         "ACT-DPI-ISE-": {
+            "version": "v1",
+            "layers": 3,
+            "layer2_method": "unzip",
+            "layer2_pattern": "*.tar.gz",  # 第二层文件匹配模式
+            "layer3_method": "tar",
+            "script_location": {
+                "install": 3,    # 安装脚本在第3层
+                "upgrade": 2     # 升级脚本在第2层
+            }
+        },
+        "ACT-DPI-NSE-": {
+            "version": "v1",
+            "layers": 3,
+            "layer2_method": "unzip",
+            "layer2_pattern": "*.tar.gz",  # 第二层文件匹配模式
+            "layer3_method": "tar",
+            "script_location": {
+                "install": 3,    # 安装脚本在第3层
+                "upgrade": 2     # 升级脚本在第2层
+            }
+        },
+        "ACT-DPI-DSE-": {
             "version": "v1",
             "layers": 3,
             "layer2_method": "unzip",
@@ -546,9 +808,13 @@ def dpi_install(
         logger.info(f"  → 开关参数：{modified_param}")
         logger.info(f"  → 超时时间：{timeout}s")
 
+        # 根据模式获取 args 参数
+        mod_switch_args = get_mod_switch_args(mode, mod_switch_version)
+        logger.info(f"  → 切换参数：{mod_switch_args}")
+
         result = dpiserver.mod_switch(
             mode=mode,
-            args=(mod_switch_version,),
+            args=mod_switch_args,
             modified_param=modified_param,
             force=False,
             pcicfg=pcicfg,
@@ -641,6 +907,9 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
     sheet_name2cases = p_excel["sheet_name2cases"]
     sheet_name2head2col = p_excel["sheet_name2head2col"]
     config = p_excel["config"]
+
+    # 新增：临时记忆字典，记录每个分类是否已刷新过 RDM
+    rdm_refreshed = {}  # 格式：{"信息安全执行单元": True, "网络安全执行单元": False, ...}
 
     # 建立 DPI 服务器连接
     socket_xsa = (config["ip_xsa"], config["port_xsa"])
@@ -800,6 +1069,85 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
                 dpiversion_d = case.get("dpiversion_d", "")
                 dpimode_s = case.get("dpimode_s", "")
                 dpimode_d = case.get("dpimode_d", "")
+
+                # 处理 target_version 替换
+                # 处理 dpiversion_s
+                if dpiversion_s == "target_version":
+                    # 优先使用 dpimode_s，如果为空则使用 dpimode_d
+                    mode_for_version_s = dpimode_s if dpimode_s else dpimode_d
+                    if mode_for_version_s:
+                        try:
+                            dpiversion_s = resolve_version_target(
+                                dpiversion_s, mode_for_version_s, sheet_name, config, rdm_refreshed
+                            )
+                            logger.info(f"→ dpiversion_s 替换为：{dpiversion_s}")
+                        except Exception as e:
+                            logger.error(f"✗ 无法获取目标版本：{e}")
+                            mark.append(f"无法获取目标版本：{str(e)}")
+                            result_deal(
+                                xls=path,
+                                sheet_index=sheet_name,
+                                result_list=tmp_list,
+                                row=case["row"] + i,
+                                head2col=sheet_name2head2col[sheet_name],
+                                mark=mark,
+                                only_write=False,
+                                newpath=newpath
+                            )
+                            continue
+                    else:
+                        logger.error("✗ 无法确定版本分类：dpimode_s 和 dpimode_d 都为空")
+                        mark.append("无法确定版本分类：dpimode_s 和 dpimode_d 都为空")
+                        result_deal(
+                            xls=path,
+                            sheet_index=sheet_name,
+                            result_list=tmp_list,
+                            row=case["row"] + i,
+                            head2col=sheet_name2head2col[sheet_name],
+                            mark=mark,
+                            only_write=False,
+                            newpath=newpath
+                        )
+                        continue
+
+                # 处理 dpiversion_d
+                if dpiversion_d == "target_version":
+                    # 优先使用 dpimode_d，如果为空则使用 dpimode_s
+                    mode_for_version_d = dpimode_d if dpimode_d else dpimode_s
+                    if mode_for_version_d:
+                        try:
+                            dpiversion_d = resolve_version_target(
+                                dpiversion_d, mode_for_version_d, sheet_name, config, rdm_refreshed
+                            )
+                            logger.info(f"→ dpiversion_d 替换为：{dpiversion_d}")
+                        except Exception as e:
+                            logger.error(f"✗ 无法获取目标版本：{e}")
+                            mark.append(f"无法获取目标版本：{str(e)}")
+                            result_deal(
+                                xls=path,
+                                sheet_index=sheet_name,
+                                result_list=tmp_list,
+                                row=case["row"] + i,
+                                head2col=sheet_name2head2col[sheet_name],
+                                mark=mark,
+                                only_write=False,
+                                newpath=newpath
+                            )
+                            continue
+                    else:
+                        logger.error("✗ 无法确定版本分类：dpimode_d 和 dpimode_s 都为空")
+                        mark.append("无法确定版本分类：dpimode_d 和 dpimode_s 都为空")
+                        result_deal(
+                            xls=path,
+                            sheet_index=sheet_name,
+                            result_list=tmp_list,
+                            row=case["row"] + i,
+                            head2col=sheet_name2head2col[sheet_name],
+                            mark=mark,
+                            only_write=False,
+                            newpath=newpath
+                        )
+                        continue
 
                 # 解析 xsa.json 预修改配置
                 # 格式示例："dpi.vlan_multiplexing": 2, "flow.ipv4_hash_ksize": 302
@@ -992,9 +1340,13 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
                     elif follow_up_mode == 1:
                         # 执行模式切换
                         logger.info(f"→ 执行版本 {dpiversion_s} 模式切换到 {dpimode_s}...")
+
+                        # 根据模式获取 args 参数
+                        mod_switch_args = get_mod_switch_args(dpimode_s, mod_switch_version)
+
                         result_mod_switch = xsa.mod_switch(
                             mode=dpimode_s,
-                            args=(mod_switch_version,),
+                            args=mod_switch_args,
                             modified_param=switch_param_s_dict,
                             pcicfg=pcicfg,
                             timeout=900
@@ -1020,15 +1372,52 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
                         # 执行全新安装
                         logger.info(f"→ 执行版本 {dpiversion_s} 全新安装，模式 {dpimode_s}...")
 
+                        # 优化：先尝试从已有安装包安装，失败后再获取 FTP 路径
+                        ftp_path_s = None
                         try:
                             ftp_path_s = get_ftp_path_with_auto_update(
                                 version=dpiversion_s,
                                 mode=dpimode_s
                             )
                         except RuntimeError as e:
-                            logger.error(f"✗ 获取源版本 FTP 路径失败：{e}")
-                            logger.error(f"✗ 跳过当前 Sheet：{sheet_name}")
-                            break
+                            logger.warning(f"⚠ 获取源版本 FTP 路径失败：{e}")
+
+                            # 如果配置了"优先使用存在安装包_s"，尝试扫描已有安装包
+                            if prefer_backup_pkt_s:
+                                logger.info("→ 尝试扫描目标服务器已有安装包...")
+                                # 这里需要根据版本号构造安装包名称模式
+                                # 由于无法直接获取安装包路径，继续尝试其他方式
+                                logger.warning("⚠ 无法通过已有安装包解决，跳过当前用例")
+                                mark.append(f"获取 FTP 路径失败：{str(e)}")
+                                result_deal(
+                                    xls=path,
+                                    sheet_index=sheet_name,
+                                    result_list=tmp_list,
+                                    row=case["row"] + i,
+                                    head2col=sheet_name2head2col[sheet_name],
+                                    mark=mark,
+                                    only_write=False,
+                                    newpath=newpath
+                                )
+                                continue
+                            else:
+                                logger.error(f"✗ 跳过当前 Sheet：{sheet_name}")
+                                break
+
+                        if not ftp_path_s:
+                            logger.error(f"✗ 无法获取版本 {dpiversion_s} 的安装路径")
+                            mark.append(f"无法获取安装路径")
+                            result_deal(
+                                xls=path,
+                                sheet_index=sheet_name,
+                                result_list=tmp_list,
+                                row=case["row"] + i,
+                                head2col=sheet_name2head2col[sheet_name],
+                                mark=mark,
+                                only_write=False,
+                                newpath=newpath
+                            )
+                            continue
 
                         ftphost, ftppath = re.findall(r'ftp://(.+?\..+?\..+?\..+?)(/.+?)\s*$', ftp_path_s)[0]
 
@@ -1073,9 +1462,12 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
                         logger.info(f"  → 开关参数：{switch_param_d_dict}")
                         logger.info(f"  → PCI 配置：{pcicfg}")
 
+                        # 根据模式获取 args 参数
+                        mod_switch_args = get_mod_switch_args(dpimode_d, mod_switch_version)
+
                         result_mod_switch = xsa.mod_switch(
                             mode=dpimode_d,
-                            args=(mod_switch_version,),
+                            args=mod_switch_args,
                             modified_param=switch_param_d_dict,
                             pcicfg=pcicfg,
                             timeout=900
@@ -1147,7 +1539,7 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
                                 mode=None,
                                 pcicfg=None,
                                 modified_param=None,
-                                timeout=600,
+                                timeout=upgrade_complete_timeout,
                                 user="weihang",
                                 password="Qq111222",
                                 upms=True,
