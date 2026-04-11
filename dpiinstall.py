@@ -69,18 +69,43 @@ def sanitize_case_name(case_name):
     return sanitized
 
 
-def print_case_separator(case_name, logger):
+def print_case_separator(case_name, logger, log_file=None):
     """
     打印用例分隔符
 
     Args:
         case_name: 用例名称
         logger: 日志记录器
+        log_file: 日志文件路径（可选）
     """
     separator = "─" * 78
     logger.info(separator)
     logger.info(f"用例：{case_name}")
     logger.info(separator)
+
+    # 如果提供了日志文件路径，显示在分隔符之后
+    if log_file:
+        logger.info(f"日志文件：{log_file}")
+
+
+def print_stage_separator(stage_name, logger):
+    """
+    打印阶段分隔符
+
+    Args:
+        stage_name: 阶段名称
+        logger: 日志记录器
+    """
+    logger.info("")
+    logger.info("╔" + "═" * 78 + "╗")
+
+    # 计算阶段名称的显示宽度，确保居中显示
+    text_width = get_display_width(stage_name)
+    total_width = 78
+    padding = (total_width - text_width) // 2
+
+    logger.info("║" + " " * padding + stage_name + " " * (total_width - padding - text_width) + "║")
+    logger.info("╚" + "═" * 78 + "╝")
 
 
 def parse_version(version_str: str) -> tuple:
@@ -666,13 +691,7 @@ def dpi_install(
     }
 
     # ==================== 第一阶段：验证安装包 ====================
-    logger.info("")
-    logger.info("╔" + "═" * 78 + "╗")
-    text = "第一阶段：验证 FTP 安装包"
-    text_width = get_display_width(text)
-    right_spaces = 78 - 25 - text_width
-    logger.info("║" + " " * 25 + text + " " * right_spaces + "║")
-    logger.info("╚" + "═" * 78 + "╝")
+    print_stage_separator("第一阶段：验证 FTP 安装包", logger)
 
     # 连接 FTP 服务器并验证安装包是否存在
     logger.info(f"→ 连接 FTP 服务器：{ftphost}")
@@ -685,13 +704,7 @@ def dpi_install(
     logger.info(f"✓ 安装包验证通过")
 
     # ==================== 第二阶段：下载安装包 ====================
-    logger.info("")
-    logger.info("╔" + "═" * 78 + "╗")
-    text = "第二阶段：下载安装包"
-    text_width = get_display_width(text)
-    right_spaces = 78 - 28 - text_width
-    logger.info("║" + " " * 28 + text + " " * right_spaces + "║")
-    logger.info("╚" + "═" * 78 + "╝")
+    print_stage_separator("第二阶段：下载安装包", logger)
 
     # 提取安装包文件名和下载路径
     pktname = os.path.basename(ftppath)  # 如：ACT-DPI-ISE-1.0.5.2-2_20250427161928.tar.gz
@@ -741,14 +754,7 @@ def dpi_install(
     if version_config is None:
         raise RuntimeError(f"未知的安装包前缀：{pktname}")
 
-    logger.info("")
-    logger.info("╔" + "═" * 78 + "╗")
-    # 计算字符串的实际显示宽度（中文字符占2个宽度）
-    text = f"第三阶段：解压安装包（{version_config['layers']}层压缩）"
-    text_width = get_display_width(text)
-    right_spaces = 78 - 22 - text_width
-    logger.info("║" + " " * 22 + text + " " * right_spaces + "║")
-    logger.info("╚" + "═" * 78 + "╝")
+    print_stage_separator(f"第三阶段：解压安装包（{version_config['layers']}层压缩）", logger)
     logger.info(f"→ 检测到版本：{version_config['version']}，解压方式：{version_config['layer2_method']}")
 
     # ---------- 解压第一层：外层压缩包（带时间戳） ----------
@@ -809,15 +815,8 @@ def dpi_install(
     logger.info(f"→ 升级脚本路径：{upms_install_file}")
 
     # ==================== 第四阶段：执行安装/升级 ====================
-    logger.info("")
-    logger.info("╔" + "═" * 78 + "╗")
-    # 计算字符串的实际显示宽度（中文字符占2个宽度）
     action = '升级' if upms else '全新安装'
-    text = f"第四阶段：执行{action}"
-    text_width = get_display_width(text)
-    right_spaces = 78 - 25 - text_width
-    logger.info("║" + " " * 25 + text + " " * right_spaces + "║")
-    logger.info("╚" + "═" * 78 + "╝")
+    print_stage_separator(f"第四阶段：执行{action}", logger)
 
     if not upms:
         # ==================== 全新安装流程 ====================
@@ -898,13 +897,7 @@ def dpi_install(
         logger.info(f"✓ 升级完成，结果：{result}")
 
     # ==================== 第五阶段：输出最终状态 ====================
-    logger.info("")
-    logger.info("╔" + "═" * 78 + "╗")
-    text = "第五阶段：输出最终状态"
-    text_width = get_display_width(text)
-    right_spaces = 78 - 27 - text_width
-    logger.info("║" + " " * 27 + text + " " * right_spaces + "║")
-    logger.info("╚" + "═" * 78 + "╝")
+    print_stage_separator("第五阶段：输出最终状态", logger)
 
     logger.info(f"→ PCI 信息：{dpiserver.get_pcicfg()}")
     logger.info(f"→ DPI 模式：{dpiserver.get_dpimode()}")
@@ -992,10 +985,20 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
         dynamic_handler = DynamicFileHandler(log_dir="log", level=logging.DEBUG)
 
         # 添加到所有模块的 logger (包括当前模块 dpiinstall)
+        # 先移除原有的 FileHandler，避免重复输出到文件
         for module in modules:
             if hasattr(module, 'logger'):
+                # 移除原有的 FileHandler（保留 ConsoleHandler）
+                for handler in module.logger.handlers[:]:
+                    if isinstance(handler, logging.FileHandler):
+                        module.logger.removeHandler(handler)
+                # 添加 DynamicFileHandler
                 module.logger.addHandler(dynamic_handler)
-        # 为当前模块也添加 handler
+
+        # 为当前模块也添加 handler（同样先移除原有的 FileHandler）
+        for handler in logger.handlers[:]:
+            if isinstance(handler, logging.FileHandler):
+                logger.removeHandler(handler)
         logger.addHandler(dynamic_handler)
 
         try:
@@ -1116,21 +1119,14 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
 
                     # ==================== 日志文件切换 ====================
                     # 如果策略是按用例拆分，切换到新的日志文件
+                    log_file = None
                     if log_strategy == "by_case":
                         safe_case_name = sanitize_case_name(case_name)
                         log_file = f"{session_id}_{sheet_name}_{safe_case_name}.log"
                         dynamic_handler.switch_file(log_file)
 
                     # 打印用例分隔符
-                    print_case_separator(case_name, logger)
-
-                    logger.info("")
-                    logger.info("┌" + "─" * 78 + "┐")
-                    text = f" 用例：{case_name} (第 {i + 1} 项)"
-                    text_width = get_display_width(text)
-                    right_spaces = 78 - text_width
-                    logger.info("│" + text + " " * right_spaces + "│")
-                    logger.info("└" + "─" * 78 + "┘")
+                    print_case_separator(case_name, logger, log_file)
 
                     # ==================== 解析用例参数 ====================
                     result = "Pass"

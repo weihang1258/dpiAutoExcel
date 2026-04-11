@@ -19,7 +19,7 @@ from dict_comparer import DictComparer
 from socket_linux import SocketLinux
 import ftplib
 
-logger = setup_logging(log_file_path="log/dpi.log", logger_name="lib-dpi")
+logger = setup_logging(log_file_path="log/dpi.log", logger_name="dpi")
 
 
 action2policyfile = {"eu_plc": "/opt/dpi/euconf/rule/eu_policy.rule",

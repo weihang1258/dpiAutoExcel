@@ -19,7 +19,7 @@ from scapy.all import rdpcap, wrpcap
 from common import md5, setup_logging
 
 # 添加日志打印
-logger = setup_logging(log_file_path="log/log_statistics.log", logger_name="log_statistics")
+logger = setup_logging(log_file_path="log/socket_linux.log", logger_name="socket_linux")
 
 def compress_gzip(content):
     compressed_data = gzip.compress(content)

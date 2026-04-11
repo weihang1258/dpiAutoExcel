@@ -7,7 +7,7 @@ import io
 from ftplib import FTP_TLS, FTP
 from common import setup_logging
 
-logger = setup_logging(log_file_path="log/ftp.log", logger_name="lib-ftp")
+logger = setup_logging(log_file_path="log/ftp.log", logger_name="ftp")
 class FTPclient:
     def __init__(self, host, user, passwd, encode="utf-8"):
         self.host = host

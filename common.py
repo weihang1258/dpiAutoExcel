@@ -57,11 +57,10 @@ def setup_logging(log_file_path, logger_name, encoding="utf-8", keep_alive=False
         logger = logging.getLogger(logger_name)
         logger.setLevel(logging.DEBUG)
 
-        # 先清空之前的日志配置
-        if logger.hasHandlers():
-            logging.basicConfig(level=logging.DEBUG, force=True)
+        # 禁用日志传播到 root logger，避免重复输出
+        logger.propagate = False
 
-        # 避免重复添加处理器
+        # 清空之前的处理器，避免重复输出
         if logger.handlers:
             logger.handlers.clear()
 
@@ -94,7 +93,7 @@ def setup_logging(log_file_path, logger_name, encoding="utf-8", keep_alive=False
 
 
 
-logger = setup_logging(log_file_path="log/common.log", logger_name="lib-common")
+logger = setup_logging(log_file_path="log/common.log", logger_name="common")
 
 def gettime(n=4):
     '''

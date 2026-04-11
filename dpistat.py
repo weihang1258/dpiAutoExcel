@@ -9,7 +9,7 @@ import sys
 import time
 from common import setup_logging
 from socket_linux import SocketLinux
-logger = setup_logging(log_file_path="log/dpistat.log", logger_name="lib-dpistat")
+logger = setup_logging(log_file_path="log/dpistat.log", logger_name="dpistat")
 
 action2marex_policy = {"eu_plc": "/dev/shm/xsa/marex_eupolicy.stat",
                        "pcapdump": "/dev/shm/xsa/marex_pcapdump.stat",
