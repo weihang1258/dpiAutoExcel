@@ -15,6 +15,7 @@ from read_write_excel import parser_excel
 from common import gettime, setup_logging
 from dpi import Dpi
 from ftp import FTPclient
+from log_handler import DynamicFileHandler
 
 # 添加日志打印
 logger = setup_logging(log_file_path="log/install.log", logger_name="install")
@@ -38,6 +39,35 @@ def get_display_width(text):
         else:
             width += 1
     return width
+
+
+def sanitize_case_name(case_name):
+    """
+    清理用例名称，移除或替换文件系统不支持的字段
+
+    Args:
+        case_name: 原始用例名称
+
+    Returns:
+        str: 清理后的用例名称
+    """
+    # 替换特殊字符为下划线
+    sanitized = re.sub(r'[<>:"/\\|?*]', '_', case_name)
+    return sanitized
+
+
+def print_case_separator(case_name, logger):
+    """
+    打印用例分隔符
+
+    Args:
+        case_name: 用例名称
+        logger: 日志记录器
+    """
+    separator = "─" * 78
+    logger.info(separator)
+    logger.info(f"用例：{case_name}")
+    logger.info(separator)
 
 
 def parse_version(version_str: str) -> tuple:
@@ -407,10 +437,10 @@ def auto_update_json_and_get_path(
     json_file: str,
     category: str,
     version: str,
-    project_list: list,
     base_url: str,
     username: str,
-    password: str
+    password: str,
+    project_list: list = None
 ) -> str:
     """
     自动更新 JSON 文件并获取 FTP 路径
@@ -421,10 +451,10 @@ def auto_update_json_and_get_path(
         json_file: JSON 文件路径
         category: 分类名称
         version: 版本号
-        project_list: 项目列表
         base_url: RDM 平台地址
         username: 用户名
         password: 密码
+        project_list: 项目列表（可选，为 None 时自动从 JSON 中读取该分类下所有项目）
 
     Returns:
         FTP 路径字符串
@@ -440,7 +470,21 @@ def auto_update_json_and_get_path(
     logger.info("│" + " " * 25 + text + " " * right_spaces + "│")
     logger.info("└" + "─" * 78 + "┘")
     logger.info(f"→ 版本 {version} 未在 JSON 中找到，开始自动更新...")
-    logger.info(f"→ 目标项目列表：{project_list}")
+
+    # 如果未指定项目列表，从 JSON 中读取该分类下所有项目
+    if project_list is None:
+        try:
+            with open(json_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if category in data:
+                project_list = list(data[category].keys())
+                logger.info(f"→ 自动获取分类 {category} 下的所有项目：{project_list}")
+            else:
+                raise RuntimeError(f"JSON 中未找到分类：{category}")
+        except FileNotFoundError:
+            raise RuntimeError(f"JSON 文件不存在：{json_file}")
+    else:
+        logger.info(f"→ 目标项目列表：{project_list}")
 
     # 1. 执行多项目提取
     from extract_release_path import get_multiple_projects_release_paths, save_versions_to_json
@@ -471,13 +515,12 @@ def auto_update_json_and_get_path(
     logger.info(f"  → 更新版本：{save_result['summary']['updated_count']}")
     logger.info(f"  → 总版本数：{save_result['summary']['total_versions']}")
 
-    # 3. 再次尝试获取路径
+    # 3. 再次尝试获取路径（搜索该分类下所有项目）
     try:
         ftp_path = get_ftp_path_from_json(
             json_file=json_file,
             category=category,
-            version=version,
-            project_list=project_list
+            version=version
         )
         logger.info(f"✓ 成功获取版本 {version} 的 FTP 路径")
         return ftp_path
@@ -487,7 +530,6 @@ def auto_update_json_and_get_path(
         raise RuntimeError(
             f"自动更新 JSON 后仍未找到版本 {version}\n"
             f"分类：{category}\n"
-            f"项目列表：{project_list}\n"
             f"请检查 RDM 平台是否存在该版本"
         )
 
@@ -859,7 +901,7 @@ def dpi_install(
     return result
 
 
-def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", newpath: str = None, versions_json: str = "versions.json", mod_switch_version: str = "idc31") -> None:
+def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", newpath: str = None, versions_json: str = "versions.json", mod_switch_version: str = "idc31", session_id: str = None, log_strategy: str = "by_case") -> None:
     """
     基于 Excel 用例执行批量安装/升级测试
 
@@ -887,6 +929,7 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
         :param path: Excel 文件路径
         :param newpath: 结果保存路径，None 则自动生成
         :param versions_json: JSON 版本文件路径，默认 "versions.json"
+        :param session_id: 会话ID，格式 YYYYMMDDHHMMSS
 
     返回值:
         :return: None，结果直接写入 Excel 文件
@@ -920,16 +963,48 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
     counter = 0
 
     for sheet_name in sheets:
-        # 计算字符串的实际显示宽度（中文字符占2个宽度）
-        text = f"执行 Sheet：{sheet_name}"
-        text_width = get_display_width(text)
-        left_spaces = 30
-        right_spaces = 78 - left_spaces - text_width
+        # ==================== 创建 DynamicFileHandler ====================
+        # 导入需要添加 DynamicFileHandler 的模块
+        import common
+        import dpi
+        import comm
+        import ftp
+        import dpistat
+        import socket_linux
 
-        logger.info("")
-        logger.info("╔" + "═" * 78 + "╗")
-        logger.info("║" + " " * left_spaces + text + " " * right_spaces + "║")
-        logger.info("╚" + "═" * 78 + "╝")
+        modules = [
+            common, dpi, comm, ftp,
+            dpistat, socket_linux
+        ]
+
+        # 创建 DynamicFileHandler
+        dynamic_handler = DynamicFileHandler(log_dir="log")
+
+        # 添加到所有模块的 logger (包括当前模块 dpiinstall)
+        for module in modules:
+            if hasattr(module, 'logger'):
+                module.logger.addHandler(dynamic_handler)
+        # 为当前模块也添加 handler
+        logger.addHandler(dynamic_handler)
+
+        try:
+            # 根据策略创建初始日志文件
+            if log_strategy == "by_sheet":
+                log_file = f"{session_id}_{sheet_name}.log"
+                dynamic_handler.switch_file(log_file)
+                logger.info(f"日志文件：{log_file}")
+
+            # ==================== Sheet 开始标识 ====================
+            # 计算字符串的实际显示宽度（中文字符占2个宽度）
+            text = f"执行 Sheet：{sheet_name}"
+            text_width = get_display_width(text)
+            left_spaces = 30
+            right_spaces = 78 - left_spaces - text_width
+
+            logger.info("")
+            logger.info("╔" + "═" * 78 + "╗")
+            logger.info("║" + " " * left_spaces + text + " " * right_spaces + "║")
+            logger.info("╚" + "═" * 78 + "╝")
 
         # 读取 FTP 相关配置
         rdm_base_url = config.get(f"{sheet_name}_base_url", "https://10.128.4.196:2000")
@@ -980,32 +1055,18 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
             except ValueError as e:
                 raise RuntimeError(f"无法确定分类：{e}")
 
-            # 2. 获取该分类的项目列表
-            config_key = f"{sheet_name}_projects_{category}"
-            projects_str = config.get(config_key, "")
-
-            if not projects_str:
-                raise RuntimeError(
-                    f"配置缺失：请在 config 页签中配置 {config_key}\n"
-                    f"格式：项目名1\\n项目名2\\n项目名3"
-                )
-
-            project_list = [p.strip() for p in projects_str.split("\n") if p.strip()]
-            logger.info(f"→ 分类 {category} 的项目列表：{project_list}")
-
-            # 3. 尝试从 JSON 获取路径
+            # 2. 直接从 JSON 获取路径（搜索该分类下所有项目）
             try:
                 ftp_path = get_ftp_path_from_json(
                     json_file=versions_json,
                     category=category,
-                    version=version,
-                    project_list=project_list
+                    version=version
                 )
                 logger.info(f"✓ 从 JSON 获取到版本 {version} 的路径")
                 return ftp_path
 
             except (FileNotFoundError, KeyError, ValueError) as e:
-                # 4. 未找到，执行自动更新
+                # 3. 未找到，执行自动更新
                 logger.warning(f"⚠ JSON 中未找到版本 {version}：{e}")
 
                 try:
@@ -1013,7 +1074,6 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
                         json_file=versions_json,
                         category=category,
                         version=version,
-                        project_list=project_list,
                         base_url=rdm_base_url,
                         username=rdm_username,
                         password=rdm_password
@@ -1042,6 +1102,16 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
                 # 处理路径（第一次使用原路径，后续使用新路径）
                 if counter != 1:
                     path = newpath
+
+                # ==================== 日志文件切换 ====================
+                # 如果策略是按用例拆分，切换到新的日志文件
+                if log_strategy == "by_case":
+                    safe_case_name = sanitize_case_name(case_name)
+                    log_file = f"{session_id}_{sheet_name}_{safe_case_name}.log"
+                    dynamic_handler.switch_file(log_file)
+
+                # 打印用例分隔符
+                print_case_separator(case_name, logger)
 
                 logger.info("")
                 logger.info("┌" + "─" * 78 + "┐")
@@ -1578,6 +1648,17 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
                     only_write=False,
                     newpath=newpath
                 )
+
+        finally:
+            # ==================== 清理 DynamicFileHandler ====================
+            logger.info(f"关闭 Sheet {sheet_name} 的日志处理器")
+            dynamic_handler.close()
+
+            # 从所有模块的 logger 中移除 handler
+            for module in modules:
+                if hasattr(module, 'logger'):
+                    module.logger.removeHandler(dynamic_handler)
+            logger.removeHandler(dynamic_handler)
 
     # 关闭连接
     xsa.client.close()

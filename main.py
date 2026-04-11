@@ -3,6 +3,7 @@ import os
 import sys
 from glob import glob
 import time
+import datetime
 from common import logger, gettime
 from dpiinstall import install
 from excel import Excel
@@ -252,6 +253,10 @@ if __name__ == '__main__':
 
 
     def run(excel_path, sheet=None):
+        # 生成会话ID
+        session_id = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        logger.info(f"会话ID: {session_id}")
+
         try:
             p_excel = parser_excel(path=excel_path)
             excel_base, excel_name = os.path.split(excel_path)
@@ -287,7 +292,7 @@ if __name__ == '__main__':
                 start_time = time.time()
 
                 if sheet_name in ["install"]:
-                    install(p_excel=p_excel, sheets=[sheet_name], path=get_s_excel_path(), newpath=path_save)
+                    install(p_excel=p_excel, sheets=[sheet_name], path=get_s_excel_path(), newpath=path_save, session_id=session_id)
                 else:
                     logger.error(f"sheet:{sheet_name}需要添加内部直接方法，将直接跳过")
 
