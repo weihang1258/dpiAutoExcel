@@ -15,15 +15,19 @@
 3. 日志输出格式更加合理、优雅、美观
 4. 用例之间有明显的分隔标识
 5. 用例名称显示明显
+6. 记录所有模块的日志到统一的日志文件
 
 ### 1.2 设计决策
 
 - **会话定义：** 每次运行 `main.py` 算一个会话
 - **日志文件组织：** 只保存单个用例日志文件，无总览文件
 - **控制台输出：** 实时显示所有用例的日志（混合输出）
-- **日志文件命名：** `{会话ID}_{用例名称}.log`
+- **日志文件命名：** 由执行函数硬编码决定
+  - 按用例拆分：`{会话ID}_{sheet名称}_{用例名称}.log`
+  - 按 sheet 拆分：`{会话ID}_{sheet名称}.log`
 - **日志存放位置：** 统一存放在 `logs/` 目录下
-- **分层日志策略：** 用例日志记录测试流程，模块日志记录技术细节
+- **日志记录范围：** 记录所有模块的日志到统一文件
+- **Sheet 执行方式：** 串行执行，不考虑并发
 
 ---
 
@@ -33,9 +37,13 @@
 
 1. 修改 `common.py` 中的 `setup_logging` 函数，优化日志格式
 2. 在 `main.py` 启动时生成会话ID
-3. 在 `dpiinstall.py` 中为每个用例动态创建独立的 logger 和日志文件
-4. 用例执行完毕后关闭当前 logger
-5. 保持其他模块的日志不变，实现分层日志
+3. 创建 `DynamicFileHandler` 类，实现动态切换日志输出文件
+4. 在 `dpiinstall.py` 的 `install` 函数中：
+   - Sheet 开始时创建 DynamicFileHandler
+   - 根据硬编码策略决定日志拆分方式
+   - 用例切换时动态切换日志文件（如果策略是按用例拆分）
+   - Sheet 结束时关闭 DynamicFileHandler
+5. 将 DynamicFileHandler 添加到所有模块的全局 logger
 
 ### 2.2 数据流
 
@@ -44,35 +52,39 @@ main.py 启动
   ↓
 生成会话ID (YYYYMMDDHHMMSS)
   ↓
+遍历 Sheet（串行）
+  ↓
+每个 Sheet 开始 → 创建 DynamicFileHandler
+                 → 添加到所有模块的 logger
+                 → 根据策略创建初始日志文件
+  ↓
 遍历用例
   ↓
-每个用例开始 → 创建新 logger (logs/{会话ID}_{用例名}.log)
+每个用例开始 → 如果策略是按用例拆分：切换到新的日志文件
+             → 打印用例分隔符
   ↓
-执行用例 → 用例日志输出到控制台 + 当前用例日志文件
-         → 模块日志输出到各自的日志文件（comm.log、dpi.log 等）
+执行用例 → 所有模块的日志输出到当前日志文件
+         → 控制台实时显示
   ↓
-用例结束 → 关闭当前 logger
+用例结束
   ↓
 下一个用例...
+  ↓
+Sheet 结束 → 关闭 DynamicFileHandler
+  ↓
+下一个 Sheet...
 ```
 
-### 2.3 分层日志策略
+### 2.3 分层日志策略（已废弃）
 
-**用例日志（dpiinstall.py）：**
-- 记录测试流程和业务逻辑
-- 包含：用例分隔符、参数解析、执行步骤、结果信息
-- 每个用例独立文件，便于问题定位
+**原设计：** 用例日志记录测试流程，模块日志记录技术细节
 
-**模块日志（其他模块）：**
-- 记录技术细节和底层操作
-- 包含：SSH 连接、FTP 传输、Linux 命令、DPI 操作等
-- 保持原有日志文件（comm.log、dpi.log、linux.log 等）
-- 便于调试技术问题
+**新设计：** 所有模块的日志统一输出到当前日志文件
 
 **优势：**
-- 用例日志简洁清晰，专注于测试流程
-- 模块日志详细完整，便于技术调试
-- 互不干扰，各司其职
+- 日志完整，便于问题定位
+- 无需查看多个日志文件
+- 实现简单，无需修改其他模块
 
 ---
 
@@ -134,7 +146,94 @@ console_format = logging.Formatter(
 
 ---
 
-### 3.3 用例分隔样式
+### 3.3 DynamicFileHandler 实现
+
+**位置：** 新建 `log_handler.py` 文件
+
+**功能：** 动态切换日志输出文件，支持按用例或按 sheet 拆分日志
+
+**实现：**
+```python
+import logging
+import os
+
+class DynamicFileHandler(logging.Handler):
+    """
+    动态切换输出文件的日志 Handler
+
+    该 Handler 可以在运行时动态切换输出文件，支持：
+    1. 按用例拆分日志：每个用例一个独立的日志文件
+    2. 按 sheet 拆分日志：每个 sheet 一个日志文件
+    """
+
+    def __init__(self, log_dir="logs"):
+        """
+        初始化 DynamicFileHandler
+
+        Args:
+            log_dir: 日志文件存放目录
+        """
+        super().__init__()
+        self.log_dir = log_dir
+        self.current_handler = None
+        self.current_file = None
+
+        # 确保日志目录存在
+        if not os.path.exists(self.log_dir):
+            os.makedirs(self.log_dir)
+
+    def switch_file(self, log_file):
+        """
+        切换到新的日志文件
+
+        Args:
+            log_file: 日志文件名（相对路径或绝对路径）
+        """
+        # 如果是相对路径，添加日志目录前缀
+        if not os.path.isabs(log_file):
+            log_file = os.path.join(self.log_dir, log_file)
+
+        # 如果目标文件与当前文件相同，不切换
+        if self.current_file == log_file:
+            return
+
+        # 关闭当前 handler
+        if self.current_handler:
+            self.current_handler.close()
+
+        # 创建新的 FileHandler
+        self.current_handler = logging.FileHandler(log_file, encoding='utf-8')
+        self.current_handler.setLevel(logging.DEBUG)
+
+        # 设置格式
+        formatter = logging.Formatter(
+            '[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )
+        self.current_handler.setFormatter(formatter)
+
+        self.current_file = log_file
+
+    def emit(self, record):
+        """
+        发送日志记录到当前文件
+
+        Args:
+            record: 日志记录
+        """
+        if self.current_handler:
+            self.current_handler.emit(record)
+
+    def close(self):
+        """关闭 Handler"""
+        if self.current_handler:
+            self.current_handler.close()
+        super().close()
+```
+
+---
+
+### 3.4 用例分隔样式
 
 **位置：** `dpiinstall.py` 中每个用例开始执行时
 
@@ -160,118 +259,113 @@ def print_case_separator(case_name, logger):
 
 ---
 
-### 3.4 用例级别 Logger 管理
+### 3.5 日志文件命名策略（硬编码）
 
-**位置：** `dpiinstall.py` 中的 `install` 函数
+**位置：** `dpiinstall.py` 的 `install` 函数
 
-**核心原则：**
-- 不替换全局 logger
-- 直接使用 `case_logger` 对象记录日志
-- 需要时将 `case_logger` 作为参数传递给其他函数
-
-#### 3.4.1 创建用例 logger
-
+**实现方式：**
 ```python
-def create_case_logger(session_id, case_name, logger_name="install"):
-    """为单个用例创建独立的 logger"""
-    # 清理用例名称
-    safe_case_name = sanitize_case_name(case_name)
-
-    # 生成日志文件名
-    log_file = f"logs/{session_id}_{safe_case_name}.log"
-
-    # 创建新的 logger（使用唯一的 logger_name）
-    case_logger = setup_logging(
-        log_file_path=log_file,
-        logger_name=f"{logger_name}_{session_id}_{safe_case_name}",
-        encoding="utf-8"
-    )
-
-    return case_logger
-```
-
-#### 3.4.2 用例执行流程
-
-```python
-# dpiinstall.py
-
-# 模块级别的全局 logger（用于非用例场景）
-logger = setup_logging(log_file_path="log/install.log", logger_name="install")
-
 def install(..., session_id):
     """安装/升级主函数"""
 
-    # 用例循环
-    for case_name, case_list in cases.items():
-        # 创建用例专属 logger
-        case_logger = create_case_logger(session_id, case_name)
+    # Sheet 循环
+    for sheet_name in sheets:
+        # 创建 DynamicFileHandler
+        dynamic_handler = DynamicFileHandler()
 
-        # 打印用例分隔
-        print_case_separator(case_name, case_logger)
+        # 添加到所有模块的 logger
+        import common
+        import dpi
+        import comm
+        # ... 其他模块
 
-        try:
-            # 执行用例时，使用 case_logger 记录日志
-            case_logger.info("开始执行用例...")
+        for module in [common, dpi, comm]:
+            module.logger.addHandler(dynamic_handler)
 
-            # 调用其他函数时，传递 case_logger
-            result = execute_case(case_list, case_logger, ...)
+        # 硬编码：根据 sheet 名称决定日志拆分策略
+        if sheet_name == "install":
+            # 按用例拆分
+            log_strategy = "by_case"
+        elif sheet_name == "upgrade":
+            # 按 sheet 拆分
+            log_strategy = "by_sheet"
+        else:
+            # 默认按用例拆分
+            log_strategy = "by_case"
 
-            case_logger.info(f"用例执行完成：{result}")
-        except Exception as e:
-            case_logger.error(f"用例执行失败：{e}")
-        finally:
-            # 关闭 logger handlers
-            for handler in case_logger.handlers[:]:
-                handler.close()
-                case_logger.removeHandler(handler)
+        # 根据策略创建初始日志文件
+        if log_strategy == "by_sheet":
+            log_file = f"{session_id}_{sheet_name}.log"
+            dynamic_handler.switch_file(log_file)
+
+        # 用例循环
+        for case_name, case_list in cases.items():
+            # 如果策略是按用例拆分，切换到新的日志文件
+            if log_strategy == "by_case":
+                log_file = f"{session_id}_{sheet_name}_{case_name}.log"
+                dynamic_handler.switch_file(log_file)
+
+            # 打印用例分隔符
+            print_case_separator(case_name, logger)
+
+            # 执行用例
+            # ...
+
+        # Sheet 结束，关闭 DynamicFileHandler
+        dynamic_handler.close()
+
+        # 从所有模块的 logger 中移除 DynamicFileHandler
+        for module in [common, dpi, comm]:
+            module.logger.removeHandler(dynamic_handler)
 ```
-
-#### 3.4.3 函数参数化
-
-需要将 `logger` 作为参数传递的函数：
-
-**主要函数：**
-1. `execute_case` - 执行单个用例
-2. `dpi_install` - DPI 安装函数
-3. 其他在 `dpiinstall.py` 中定义的辅助函数
-
-**实现示例：**
-```python
-def execute_case(case_list, logger, ...):
-    """执行单个用例"""
-    logger.info("解析用例参数...")
-
-    # 使用传入的 logger 记录日志
-    logger.info(f"安装类型：{installtype}")
-    logger.info(f"源版本：{dpiversion_s}，目标版本：{dpiversion_d}")
-
-    # 调用其他函数时继续传递 logger
-    result = dpi_install(..., logger=logger, ...)
-
-    return result
-
-def dpi_install(..., logger, ...):
-    """DPI 安装函数"""
-    logger.info("开始安装...")
-
-    # 使用传入的 logger 记录日志
-    # ...
-
-    return result
-```
-
-**注意：**
-- 所有需要记录用例日志的函数都需要增加 `logger` 参数
-- 在函数内部使用传入的 `logger` 而不是全局 `logger`
 
 ---
 
-### 3.5 错误处理和边界情况
+### 3.6 需要添加 DynamicFileHandler 的模块列表
 
-#### 3.5.1 日志目录不存在
-- `setup_logging` 函数已有处理：自动创建日志目录
+**主要模块：**
+1. `common` - 通用工具模块
+2. `dpi` - DPI 操作模块
+3. `comm` - 通信模块
+4. `linux` - Linux 命令模块
+5. `ssh` - SSH 连接模块
+6. `ftp` - FTP 传输模块
+7. `dpistat` - DPI 状态检查模块
+8. `excel` - Excel 操作模块
+9. `socket_linux` - Socket 通信模块
 
-#### 3.5.2 用例名称包含特殊字符
+**实现方式：**
+```python
+# 在 install 函数中
+import common
+import dpi
+import comm
+import linux
+import ssh
+import ftp
+import dpistat
+import excel
+import socket_linux
+
+modules = [
+    common, dpi, comm, linux,
+    ssh, ftp, dpistat, excel, socket_linux
+]
+
+# 添加 DynamicFileHandler
+for module in modules:
+    if hasattr(module, 'logger'):
+        module.logger.addHandler(dynamic_handler)
+```
+
+---
+
+### 3.7 错误处理和边界情况
+
+#### 3.7.1 日志目录不存在
+- `DynamicFileHandler` 初始化时自动创建日志目录
+
+#### 3.7.2 用例名称包含特殊字符
 - 用例名称可能包含 `/`、`\`、`:` 等文件系统不支持的字段
 - 需要对用例名称进行清理，替换特殊字符为下划线
 
@@ -286,18 +380,26 @@ def sanitize_case_name(case_name):
     return sanitized
 ```
 
-#### 3.5.3 同一用例多次执行
-- 日志文件会被覆盖（当前 `setup_logging` 会清空已存在的文件）
+#### 3.7.3 同一用例多次执行
+- 日志文件会被覆盖
 - 这是预期行为，保持不变
 
-#### 3.5.4 logger 未正确关闭
+#### 3.7.4 DynamicFileHandler 未正确关闭
 - 可能导致文件句柄泄漏
 - 使用 try-finally 确保清理
 
-#### 3.5.5 logger_name 唯一性
-- 每个用例的 logger_name 必须唯一
-- 格式：`{logger_name}_{session_id}_{safe_case_name}`
-- 避免多个用例共享同一个 logger
+**实现：**
+```python
+try:
+    # Sheet 执行逻辑
+    # ...
+finally:
+    # 确保 DynamicFileHandler 被关闭
+    dynamic_handler.close()
+    for module in modules:
+        if hasattr(module, 'logger'):
+            module.logger.removeHandler(dynamic_handler)
+```
 
 ---
 
@@ -314,72 +416,62 @@ def sanitize_case_name(case_name):
 - 在程序启动时生成会话ID
 - 将会话ID传递给 `install` 函数
 
-#### 文件 3：`dpiinstall.py`
+#### 文件 3：`log_handler.py`（新建）
+- 创建 `DynamicFileHandler` 类
+- 实现动态切换日志文件功能
+
+#### 文件 4：`dpiinstall.py`
 - 修改 `install` 函数签名，增加 `session_id` 参数
 - 添加 `sanitize_case_name` 函数清理用例名称
-- 添加 `create_case_logger` 函数创建用例级别 logger
 - 添加 `print_case_separator` 函数打印用例分隔符
-- 在用例循环中为每个用例创建独立 logger
-- 用例结束时关闭 logger handlers
-- 修改相关函数，增加 `logger` 参数
+- 在 sheet 循环中创建 DynamicFileHandler
+- 硬编码日志拆分策略
+- 用例切换时动态切换日志文件
+- Sheet 结束时关闭 DynamicFileHandler
 
-### 4.2 需要参数化的函数列表
-
-**主要函数：**
-1. `install` - 增加 `session_id` 参数
-2. `execute_case` - 增加 `logger` 参数（新增函数）
-3. `dpi_install` - 增加 `logger` 参数
-4. 其他在 `dpiinstall.py` 中定义的辅助函数
-
-**实现方式：**
-- 将 `logger` 作为参数传递
-- 在函数内部使用传入的 `logger` 记录日志
-
-### 4.3 改动范围估算
-- 约 3 个文件
-- 新增约 60-100 行代码
-- 修改约 20-30 行现有代码
-- 需要修改约 10-20 个函数签名
+### 4.2 改动范围估算
+- 约 4 个文件（3 个修改，1 个新建）
+- 新增约 150-200 行代码
+- 修改约 30-50 行现有代码
 
 ---
 
 ## 五、核心特性总结
 
 1. ✅ 每次运行生成唯一会话ID（格式：YYYYMMDDHHMMSS）
-2. ✅ 每个用例独立日志文件（命名：`{会话ID}_{用例名称}.log`）
+2. ✅ 支持按用例或按 sheet 拆分日志文件
 3. ✅ 日志统一存放在 `logs/` 目录
 4. ✅ 日志格式优化：`[2026-04-11 14:30:25] [install] [INFO] 消息`
 5. ✅ 用例分隔清晰（横线分隔 + 用例名单独一行）
 6. ✅ 控制台实时显示所有用例日志
-7. ✅ 分层日志策略（用例日志 + 模块日志）
-8. ✅ 错误处理完善（特殊字符清理、logger 生命周期管理）
+7. ✅ 记录所有模块的日志到统一文件
+8. ✅ 错误处理完善（特殊字符清理、Handler 生命周期管理）
 9. ✅ 不影响其他模块的日志逻辑
+10. ✅ Sheet 串行执行，无需考虑并发
 
 ---
 
 ## 六、方案选择理由
 
-### 6.1 选择最小改动方案的原因
+### 6.1 选择 DynamicFileHandler 的原因
 
-1. 项目规模适中，不需要过度设计
-2. 改动最小，风险可控
-3. 能快速实现需求
-4. 后续如果需要，可以逐步重构为会话管理器方案
+1. **不破坏现有结构：** 无需修改其他模块的函数签名
+2. **灵活性高：** 可以动态切换日志输出目标
+3. **易于维护：** 集中管理日志输出逻辑
+4. **向后兼容：** 保持现有的日志文件结构
 
-### 6.2 选择分层日志策略的原因
+### 6.2 选择硬编码策略的原因
 
-1. **职责分离：** 用例日志专注于测试流程，模块日志专注于技术细节
-2. **可读性强：** 用例日志简洁清晰，不会被大量技术细节淹没
-3. **便于调试：** 技术问题可以查看对应的模块日志
-4. **改动最小：** 不需要修改其他模块的日志逻辑
-5. **向后兼容：** 保持现有的日志文件结构
+1. **简单直接：** 无需增加配置项
+2. **明确可控：** 每个 sheet 的策略在代码中明确定义
+3. **易于理解：** 新人可以快速理解日志拆分逻辑
+4. **便于调试：** 策略逻辑集中在一处，便于排查问题
 
-### 6.3 选择参数化 logger 的原因
+### 6.3 选择在 sheet 开始时创建 Handler 的原因
 
-1. **明确性：** 函数签名明确表示需要记录日志
-2. **灵活性：** 可以根据上下文使用不同的 logger
-3. **安全性：** 不依赖全局状态，避免意外修改
-4. **可测试性：** 便于单元测试时注入 mock logger
+1. **职责清晰：** Handler 的生命周期与 sheet 绑定
+2. **资源管理：** 便于统一管理文件句柄
+3. **易于扩展：** 未来如果需要按 sheet 并行，只需为每个 sheet 创建独立的 Handler
 
 ---
 
@@ -387,19 +479,19 @@ def sanitize_case_name(case_name):
 
 ### 7.1 测试策略
 
-1. **单元测试：** 测试 `sanitize_case_name`、`create_case_logger` 等辅助函数
-2. **集成测试：** 测试完整的用例执行流程，验证日志文件正确生成
-3. **边界测试：** 测试特殊字符用例名、并发执行等边界情况
+1. **单元测试：** 测试 `DynamicFileHandler`、`sanitize_case_name` 等辅助函数
+2. **集成测试：** 测试完整的 sheet 执行流程，验证日志文件正确生成
+3. **边界测试：** 测试特殊字符用例名、多次执行同一用例等边界情况
 
 ### 7.2 向后兼容
 
-1. 保持其他模块的日志文件不变
+1. 保持其他模块的日志文件不变（原有日志文件仍然生成）
 2. 保持现有的日志级别（DEBUG、INFO、WARNING、ERROR）
 3. 保持现有的日志调用方式
 
 ### 7.3 性能考虑
 
-1. 每个用例创建新 logger 会有轻微性能开销
+1. 每个用例切换日志文件会有轻微性能开销
 2. 日志文件数量会随用例数量增加
 3. 建议定期清理旧的日志文件
 
@@ -409,7 +501,7 @@ def sanitize_case_name(case_name):
 
 如果后续需要进一步优化，可以考虑：
 
-1. **会话管理器：** 封装 logger 创建和管理逻辑
-2. **日志聚合：** 提供工具聚合用例日志和模块日志
-3. **日志清理：** 自动清理过期日志文件
-4. **日志分析：** 提供日志分析工具，提取关键信息
+1. **日志压缩：** 自动压缩过期的日志文件
+2. **日志清理：** 自动清理过期日志文件
+3. **日志分析：** 提供日志分析工具，提取关键信息
+4. **日志聚合：** 提供工具聚合多个日志文件，便于查看
