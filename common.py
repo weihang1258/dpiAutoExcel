@@ -20,6 +20,10 @@ import subprocess
 # from mycode.lib.socket_linux import SocketLinux
 import logging
 
+# 日志格式常量
+LOG_FORMAT = '[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s'
+LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+
 def keep_console_alive(logger, interval=10):
     """
     保持控制台活性的后台线程函数
@@ -64,13 +68,13 @@ def setup_logging(log_file_path, logger_name, encoding="utf-8", keep_alive=False
         # 文件处理器配置
         file_handler = logging.FileHandler(log_file_path, encoding=encoding)
         file_handler.setLevel(logging.DEBUG)
-        file_format = logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        file_format = logging.Formatter(LOG_FORMAT, datefmt=LOG_DATE_FORMAT)
         file_handler.setFormatter(file_format)
 
         # 控制台处理器配置
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
-        console_format = logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        console_format = logging.Formatter(LOG_FORMAT, datefmt=LOG_DATE_FORMAT)
         console_handler.setFormatter(console_format)
 
         # 添加处理器

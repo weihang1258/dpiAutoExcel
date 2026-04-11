@@ -12,6 +12,7 @@
 
 import logging
 import os
+from common import LOG_FORMAT, LOG_DATE_FORMAT
 
 
 class DynamicFileHandler(logging.Handler):
@@ -23,15 +24,17 @@ class DynamicFileHandler(logging.Handler):
     2. 按 sheet 拆分日志：每个 sheet 一个日志文件
     """
 
-    def __init__(self, log_dir="log"):
+    def __init__(self, log_dir="log", level=logging.DEBUG):
         """
         初始化 DynamicFileHandler
 
         Args:
             log_dir: 日志文件存放目录，默认为 "log"
+            level: 日志级别，默认为 DEBUG
         """
         super().__init__()
         self.log_dir = log_dir
+        self.level = level
         self.current_handler = None
         self.current_file = None
 
@@ -60,17 +63,30 @@ class DynamicFileHandler(logging.Handler):
             self.current_handler.close()
 
         # 创建新的 FileHandler
-        self.current_handler = logging.FileHandler(log_file, encoding='utf-8')
-        self.current_handler.setLevel(logging.DEBUG)
+        try:
+            self.current_handler = logging.FileHandler(log_file, encoding='utf-8')
+            self.current_handler.setLevel(self.level)
 
-        # 设置格式（与 common.py 中的格式保持一致）
-        formatter = logging.Formatter(
-            '[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
-        )
-        self.current_handler.setFormatter(formatter)
+            # 设置格式（与 common.py 中的格式保持一致）
+            formatter = logging.Formatter(LOG_FORMAT, datefmt=LOG_DATE_FORMAT)
+            self.current_handler.setFormatter(formatter)
 
-        self.current_file = log_file
+            self.current_file = log_file
+        except (IOError, OSError) as e:
+            # 降级处理：使用默认日志文件
+            error_log_file = os.path.join(self.log_dir, 'error.log')
+            try:
+                self.current_handler = logging.FileHandler(error_log_file, encoding='utf-8')
+                self.current_handler.setLevel(self.level)
+                formatter = logging.Formatter(LOG_FORMAT, datefmt=LOG_DATE_FORMAT)
+                self.current_handler.setFormatter(formatter)
+                self.current_file = error_log_file
+                # 记录错误（使用临时 handler）
+                import sys
+                print(f"无法创建日志文件 {log_file}: {e}，使用降级日志文件 {error_log_file}", file=sys.stderr)
+            except Exception as fallback_error:
+                # 如果连降级日志文件都无法创建，抛出异常
+                raise RuntimeError(f"无法创建日志文件 {log_file}，降级日志文件 {error_log_file} 也创建失败: {fallback_error}")
 
     def emit(self, record):
         """

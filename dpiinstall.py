@@ -9,6 +9,7 @@ import os
 import re
 import time
 import json
+import datetime
 
 from comm import result_deal
 from read_write_excel import parser_excel
@@ -16,6 +17,14 @@ from common import gettime, setup_logging
 from dpi import Dpi
 from ftp import FTPclient
 from log_handler import DynamicFileHandler
+
+# 导入需要添加 DynamicFileHandler 的模块
+import common
+import dpi
+import comm
+import ftp
+import dpistat
+import socket_linux
 
 # 添加日志打印
 logger = setup_logging(log_file_path="log/install.log", logger_name="install")
@@ -51,8 +60,11 @@ def sanitize_case_name(case_name):
     Returns:
         str: 清理后的用例名称
     """
-    # 替换特殊字符为下划线
-    sanitized = re.sub(r'[<>:"/\\|?*]', '_', case_name)
+    # 替换特殊字符为下划线（包括换行符、制表符等）
+    sanitized = re.sub(r'[<>:"/\\|?*\r\n\t]', '_', case_name)
+    # 限制文件名长度（Windows 限制 255 字符，留出余量给前缀和后缀）
+    if len(sanitized) > 200:
+        sanitized = sanitized[:200]
     return sanitized
 
 
@@ -930,6 +942,7 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
         :param newpath: 结果保存路径，None 则自动生成
         :param versions_json: JSON 版本文件路径，默认 "versions.json"
         :param session_id: 会话ID，格式 YYYYMMDDHHMMSS
+        :param log_strategy: 日志拆分策略，"by_case" 或 "by_sheet"
 
     返回值:
         :return: None，结果直接写入 Excel 文件
@@ -946,6 +959,11 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
         - {sheet}_projects_{category}：各分类对应的项目列表，多个项目用换行符分隔
     """
     # ==================== 初始化 ====================
+    # 检查 session_id，如果为空则自动生成
+    if session_id is None:
+        session_id = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        logger.warning(f"session_id 为空，自动生成：{session_id}")
+
     # 解析 Excel 数据
     sheet_name2cases = p_excel["sheet_name2cases"]
     sheet_name2head2col = p_excel["sheet_name2head2col"]
@@ -964,21 +982,13 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
 
     for sheet_name in sheets:
         # ==================== 创建 DynamicFileHandler ====================
-        # 导入需要添加 DynamicFileHandler 的模块
-        import common
-        import dpi
-        import comm
-        import ftp
-        import dpistat
-        import socket_linux
-
         modules = [
             common, dpi, comm, ftp,
             dpistat, socket_linux
         ]
 
         # 创建 DynamicFileHandler
-        dynamic_handler = DynamicFileHandler(log_dir="log")
+        dynamic_handler = DynamicFileHandler(log_dir="log", level=logging.DEBUG)
 
         # 添加到所有模块的 logger (包括当前模块 dpiinstall)
         for module in modules:

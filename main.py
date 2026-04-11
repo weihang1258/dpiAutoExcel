@@ -393,13 +393,13 @@ if __name__ == '__main__':
                     pass
 
 
-    if not args.file:
-        for file in glob("*.xlsx"):
-            run(file)
-    else:
-        run(excel_path=args.file, sheet=args.sheet)
+    # if not args.file:
+    #     for file in glob("*.xlsx"):
+    #         run(file)
+    # else:
+    #     run(excel_path=args.file, sheet=args.sheet)
 
-    # # # # # run(excel_path="用例_移动131.xlsx", sheet="mirrorvlan")
-    # for i in range(1):
-    #     logger.info(str(i))
-    #     run(excel_path=r"E:\PycharmProjects\upgradeTest\用例_升级.xlsx", sheet="install")
+    # # # # run(excel_path="用例_移动131.xlsx", sheet="mirrorvlan")
+    for i in range(1):
+        logger.info(str(i))
+        run(excel_path=r"E:\PycharmProjects\upgradeTest\用例_升级.xlsx", sheet="install")
