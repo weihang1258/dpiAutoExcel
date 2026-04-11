@@ -10,6 +10,7 @@ import re
 import time
 import json
 import datetime
+import logging
 
 from comm import result_deal
 from read_write_excel import parser_excel
