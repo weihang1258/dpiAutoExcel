@@ -197,8 +197,9 @@ class DynamicFileHandler(logging.Handler):
         if self.current_file == log_file:
             return
 
-        # 关闭当前 handler
+        # 关闭当前 handler（先 flush 避免日志丢失）
         if self.current_handler:
+            self.current_handler.flush()
             self.current_handler.close()
 
         # 创建新的 FileHandler
@@ -268,71 +269,102 @@ def print_case_separator(case_name, logger):
 def install(..., session_id):
     """安装/升级主函数"""
 
+    # 导入需要添加 DynamicFileHandler 的模块
+    import common
+    import dpi
+    import comm
+    import ftp
+    import dpistat
+    import socket_linux
+    import dpiinstall
+
+    modules = [
+        common, dpi, comm, ftp,
+        dpistat, socket_linux, dpiinstall
+    ]
+
     # Sheet 循环
     for sheet_name in sheets:
         # 创建 DynamicFileHandler
         dynamic_handler = DynamicFileHandler()
 
         # 添加到所有模块的 logger
-        import common
-        import dpi
-        import comm
-        # ... 其他模块
+        for module in modules:
+            if hasattr(module, 'logger'):
+                module.logger.addHandler(dynamic_handler)
 
-        for module in [common, dpi, comm]:
-            module.logger.addHandler(dynamic_handler)
+        try:
+            # 硬编码：根据 sheet 名称决定日志拆分策略
+            if sheet_name == "install":
+                # 按用例拆分
+                log_strategy = "by_case"
+            elif sheet_name == "upgrade":
+                # 按 sheet 拆分
+                log_strategy = "by_sheet"
+            else:
+                # 默认按用例拆分
+                log_strategy = "by_case"
 
-        # 硬编码：根据 sheet 名称决定日志拆分策略
-        if sheet_name == "install":
-            # 按用例拆分
-            log_strategy = "by_case"
-        elif sheet_name == "upgrade":
-            # 按 sheet 拆分
-            log_strategy = "by_sheet"
-        else:
-            # 默认按用例拆分
-            log_strategy = "by_case"
-
-        # 根据策略创建初始日志文件
-        if log_strategy == "by_sheet":
-            log_file = f"{session_id}_{sheet_name}.log"
-            dynamic_handler.switch_file(log_file)
-
-        # 用例循环
-        for case_name, case_list in cases.items():
-            # 如果策略是按用例拆分，切换到新的日志文件
-            if log_strategy == "by_case":
-                log_file = f"{session_id}_{sheet_name}_{case_name}.log"
+            # 根据策略创建初始日志文件
+            if log_strategy == "by_sheet":
+                log_file = f"{session_id}_{sheet_name}.log"
                 dynamic_handler.switch_file(log_file)
 
-            # 打印用例分隔符
-            print_case_separator(case_name, logger)
+            # 用例循环
+            for case_name, case_list in cases.items():
+                # 如果策略是按用例拆分，切换到新的日志文件
+                if log_strategy == "by_case":
+                    safe_case_name = sanitize_case_name(case_name)
+                    log_file = f"{session_id}_{sheet_name}_{safe_case_name}.log"
+                    dynamic_handler.switch_file(log_file)
 
-            # 执行用例
-            # ...
+                # 打印用例分隔符
+                print_case_separator(case_name, logger)
 
-        # Sheet 结束，关闭 DynamicFileHandler
-        dynamic_handler.close()
+                # 执行用例
+                # ...
 
-        # 从所有模块的 logger 中移除 DynamicFileHandler
-        for module in [common, dpi, comm]:
-            module.logger.removeHandler(dynamic_handler)
+        finally:
+            # 确保 DynamicFileHandler 被关闭
+            dynamic_handler.close()
+            for module in modules:
+                if hasattr(module, 'logger'):
+                    module.logger.removeHandler(dynamic_handler)
 ```
 
 ---
 
 ### 3.6 需要添加 DynamicFileHandler 的模块列表
 
-**主要模块：**
+**验证结果：**
+
+| 模块 | 是否有 logger | 说明 |
+|------|--------------|------|
+| `common` | ✓ 有 | 通用工具模块 |
+| `dpi` | ✓ 有 | DPI 操作模块 |
+| `comm` | ✓ 有 | 通信模块 |
+| `ftp` | ✓ 有 | FTP 传输模块 |
+| `dpistat` | ✓ 有 | DPI 状态检查模块 |
+| `socket_linux` | ✓ 有 | Socket 通信模块 |
+| `dpiinstall` | ✓ 有 | 安装/升级模块 |
+| `linux` | ✗ 没有 | 类模块，不使用 logger |
+| `ssh` | ✗ 没有 | 函数模块，不使用 logger |
+| `excel` | ✗ 没有 | 类模块，不使用 logger |
+
+**需要添加 DynamicFileHandler 的模块：**
 1. `common` - 通用工具模块
 2. `dpi` - DPI 操作模块
 3. `comm` - 通信模块
-4. `linux` - Linux 命令模块
-5. `ssh` - SSH 连接模块
-6. `ftp` - FTP 传输模块
-7. `dpistat` - DPI 状态检查模块
-8. `excel` - Excel 操作模块
-9. `socket_linux` - Socket 通信模块
+4. `ftp` - FTP 传输模块
+5. `dpistat` - DPI 状态检查模块
+6. `socket_linux` - Socket 通信模块
+7. `dpiinstall` - 安装/升级模块
+
+**控制台输出说明：**
+- DynamicFileHandler 只处理文件输出
+- 控制台输出由各模块原有的 console handler 处理
+- 控制台输出不受 DynamicFileHandler 影响
+- 所有模块的日志都会实时显示在控制台
 
 **实现方式：**
 ```python
@@ -340,16 +372,14 @@ def install(..., session_id):
 import common
 import dpi
 import comm
-import linux
-import ssh
 import ftp
 import dpistat
-import excel
 import socket_linux
+import dpiinstall
 
 modules = [
-    common, dpi, comm, linux,
-    ssh, ftp, dpistat, excel, socket_linux
+    common, dpi, comm, ftp,
+    dpistat, socket_linux, dpiinstall
 ]
 
 # 添加 DynamicFileHandler
@@ -357,6 +387,10 @@ for module in modules:
     if hasattr(module, 'logger'):
         module.logger.addHandler(dynamic_handler)
 ```
+
+**日志级别控制：**
+- DynamicFileHandler 默认设置为 `DEBUG` 级别，记录所有日志
+- 如需调整，可以在创建后调用 `dynamic_handler.setLevel(logging.INFO)` 等
 
 ---
 
@@ -390,15 +424,26 @@ def sanitize_case_name(case_name):
 
 **实现：**
 ```python
-try:
-    # Sheet 执行逻辑
-    # ...
-finally:
-    # 确保 DynamicFileHandler 被关闭
-    dynamic_handler.close()
+# Sheet 循环
+for sheet_name in sheets:
+    # 创建 DynamicFileHandler
+    dynamic_handler = DynamicFileHandler()
+
+    # 添加到所有模块的 logger
+    modules = [common, dpi, comm, ftp, dpistat, socket_linux, dpiinstall]
     for module in modules:
         if hasattr(module, 'logger'):
-            module.logger.removeHandler(dynamic_handler)
+            module.logger.addHandler(dynamic_handler)
+
+    try:
+        # Sheet 执行逻辑
+        # ...
+    finally:
+        # 确保 DynamicFileHandler 被关闭
+        dynamic_handler.close()
+        for module in modules:
+            if hasattr(module, 'logger'):
+                module.logger.removeHandler(dynamic_handler)
 ```
 
 ---
