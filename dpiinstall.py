@@ -1006,459 +1006,154 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
             logger.info("║" + " " * left_spaces + text + " " * right_spaces + "║")
             logger.info("╚" + "═" * 78 + "╝")
 
-        # 读取 FTP 相关配置
-        rdm_base_url = config.get(f"{sheet_name}_base_url", "https://10.128.4.196:2000")
-        rdm_username = config.get(f"{sheet_name}_username", "weihang")
-        rdm_password = config.get(f"{sheet_name}_password", "Qq111222")
+            # 读取 FTP 相关配置
+            rdm_base_url = config.get(f"{sheet_name}_base_url", "https://10.128.4.196:2000")
+            rdm_username = config.get(f"{sheet_name}_username", "weihang")
+            rdm_password = config.get(f"{sheet_name}_password", "Qq111222")
 
-        logger.info(f"→ RDM 配置：")
-        logger.info(f"  → 平台地址：{rdm_base_url}")
-        logger.info(f"  → 用户名：{rdm_username}")
+            logger.info(f"→ RDM 配置：")
+            logger.info(f"  → 平台地址：{rdm_base_url}")
+            logger.info(f"  → 用户名：{rdm_username}")
 
-        # 读取配置项
-        path_list_scan_dpi = list(
-            map(lambda x: x.strip(), config.get(f"{sheet_name}_paths_scan_dpi", "").strip().split(","))
-        )
-        path_dpibak = config.get(f"{sheet_name}_path_dpibak", "/home/dpibak")
-        pcicfg = {
-            "pci_list": list(
-                map(lambda x: x.strip(), config.get(f"{sheet_name}_pcis", "").strip().split(","))
+            # 读取配置项
+            path_list_scan_dpi = list(
+                map(lambda x: x.strip(), config.get(f"{sheet_name}_paths_scan_dpi", "").strip().split(","))
             )
-        }
-
-        # 读取升级系统配置
-        use_upgrade_system = config.get(f"{sheet_name}_use_upgrade_system", "False").strip().lower() == "true"
-        upgrade_start_timeout = int(config.get(f"{sheet_name}_upgrade_start_timeout", "300"))
-        upgrade_complete_timeout = int(config.get(f"{sheet_name}_upgrade_complete_timeout", "1200"))
-
-        logger.info(f"→ 配置信息：")
-        logger.info(f"  → DPI 备份扫描路径：{path_list_scan_dpi}")
-        logger.info(f"  → DPI 备份存放目录：{path_dpibak}")
-        logger.info(f"  → PCI 配置：{pcicfg}")
-
-        # 定义统一的路径获取函数
-        def get_ftp_path_with_auto_update(version: str, mode: str) -> str:
-            """
-            获取 FTP 路径，支持自动更新
-
-            Args:
-                version: 版本号
-                mode: DPI 模式
-
-            Returns:
-                FTP 路径
-            """
-            # 1. 根据模式获取分类
-            try:
-                category = get_category_by_mode(mode)
-                logger.info(f"→ 版本 {version} 模式 {mode} 映射到分类：{category}")
-            except ValueError as e:
-                raise RuntimeError(f"无法确定分类：{e}")
-
-            # 2. 直接从 JSON 获取路径（搜索该分类下所有项目）
-            try:
-                ftp_path = get_ftp_path_from_json(
-                    json_file=versions_json,
-                    category=category,
-                    version=version
+            path_dpibak = config.get(f"{sheet_name}_path_dpibak", "/home/dpibak")
+            pcicfg = {
+                "pci_list": list(
+                    map(lambda x: x.strip(), config.get(f"{sheet_name}_pcis", "").strip().split(","))
                 )
-                logger.info(f"✓ 从 JSON 获取到版本 {version} 的路径")
-                return ftp_path
+            }
 
-            except (FileNotFoundError, KeyError, ValueError) as e:
-                # 3. 未找到，执行自动更新
-                logger.warning(f"⚠ JSON 中未找到版本 {version}：{e}")
+            # 读取升级系统配置
+            use_upgrade_system = config.get(f"{sheet_name}_use_upgrade_system", "False").strip().lower() == "true"
+            upgrade_start_timeout = int(config.get(f"{sheet_name}_upgrade_start_timeout", "300"))
+            upgrade_complete_timeout = int(config.get(f"{sheet_name}_upgrade_complete_timeout", "1200"))
 
+            logger.info(f"→ 配置信息：")
+            logger.info(f"  → DPI 备份扫描路径：{path_list_scan_dpi}")
+            logger.info(f"  → DPI 备份存放目录：{path_dpibak}")
+            logger.info(f"  → PCI 配置：{pcicfg}")
+
+            # 定义统一的路径获取函数
+            def get_ftp_path_with_auto_update(version: str, mode: str) -> str:
+                """
+                获取 FTP 路径，支持自动更新
+
+                Args:
+                    version: 版本号
+                    mode: DPI 模式
+
+                Returns:
+                    FTP 路径
+                """
+                # 1. 根据模式获取分类
                 try:
-                    ftp_path = auto_update_json_and_get_path(
+                    category = get_category_by_mode(mode)
+                    logger.info(f"→ 版本 {version} 模式 {mode} 映射到分类：{category}")
+                except ValueError as e:
+                    raise RuntimeError(f"无法确定分类：{e}")
+
+                # 2. 直接从 JSON 获取路径（搜索该分类下所有项目）
+                try:
+                    ftp_path = get_ftp_path_from_json(
                         json_file=versions_json,
                         category=category,
-                        version=version,
-                        base_url=rdm_base_url,
-                        username=rdm_username,
-                        password=rdm_password
+                        version=version
                     )
+                    logger.info(f"✓ 从 JSON 获取到版本 {version} 的路径")
                     return ftp_path
 
-                except RuntimeError as e:
-                    # 5. 更新后仍未找到，记录错误并跳过当前 sheet
-                    logger.error(f"✗ 无法获取版本 {version} 的 FTP 路径：{e}")
-                    raise  # 向上抛出，由外层捕获并跳过 sheet
+                except (FileNotFoundError, KeyError, ValueError) as e:
+                    # 3. 未找到，执行自动更新
+                    logger.warning(f"⚠ JSON 中未找到版本 {version}：{e}")
 
-        # 获取当前 sheet 的所有用例
-        cases = sheet_name2cases[sheet_name]
-
-        # 遍历每个用例组
-        for case_name, case_list in cases.items():
-            # 跳过空用例名或未标记执行的用例
-            if not case_name or str(case_list[0]["执行状态"]) not in ("1", "1.0"):
-                continue
-
-            # 遍历用例组中的每个用例
-            for i in range(len(case_list)):
-                case = case_list[i]
-                counter += 1
-
-                # 处理路径（第一次使用原路径，后续使用新路径）
-                if counter != 1:
-                    path = newpath
-
-                # ==================== 日志文件切换 ====================
-                # 如果策略是按用例拆分，切换到新的日志文件
-                if log_strategy == "by_case":
-                    safe_case_name = sanitize_case_name(case_name)
-                    log_file = f"{session_id}_{sheet_name}_{safe_case_name}.log"
-                    dynamic_handler.switch_file(log_file)
-
-                # 打印用例分隔符
-                print_case_separator(case_name, logger)
-
-                logger.info("")
-                logger.info("┌" + "─" * 78 + "┐")
-                text = f" 用例：{case_name} (第 {i + 1} 项)"
-                text_width = get_display_width(text)
-                right_spaces = 78 - text_width
-                logger.info("│" + text + " " * right_spaces + "│")
-                logger.info("└" + "─" * 78 + "┘")
-
-                # ==================== 解析用例参数 ====================
-                result = "Pass"
-                mark = list()
-                tmp_list = list()  # 存储写入 Excel 的结果数据
-
-                # 安装类型：全新安装、模式切换、升级
-                installtype = case.get("安装类型", "")
-
-                # 是否优先使用备份
-                prefer_backup_dpi_s = case.get("优先使用备份dpi_s", "") == "是"
-                prefer_backup_pkt_s = case.get("优先使用存在安装包_s", "") == "是"
-                prefer_backup_pkt_d = case.get("优先使用存在安装包_d", "") == "是"
-
-                # 版本和模式配置
-                dpiversion_s = case.get("dpiversion_s", "")
-                dpiversion_d = case.get("dpiversion_d", "")
-                dpimode_s = case.get("dpimode_s", "")
-                dpimode_d = case.get("dpimode_d", "")
-
-                # 处理 target_version 替换
-                # 处理 dpiversion_s
-                if dpiversion_s == "target_version":
-                    # 优先使用 dpimode_s，如果为空则使用 dpimode_d
-                    mode_for_version_s = dpimode_s if dpimode_s else dpimode_d
-                    if mode_for_version_s:
-                        try:
-                            dpiversion_s = resolve_version_target(
-                                dpiversion_s, mode_for_version_s, sheet_name, config, rdm_refreshed
-                            )
-                            logger.info(f"→ dpiversion_s 替换为：{dpiversion_s}")
-                        except Exception as e:
-                            logger.error(f"✗ 无法获取目标版本：{e}")
-                            mark.append(f"无法获取目标版本：{str(e)}")
-                            result_deal(
-                                xls=path,
-                                sheet_index=sheet_name,
-                                result_list=tmp_list,
-                                row=case["row"] + i,
-                                head2col=sheet_name2head2col[sheet_name],
-                                mark=mark,
-                                only_write=False,
-                                newpath=newpath
-                            )
-                            continue
-                    else:
-                        logger.error("✗ 无法确定版本分类：dpimode_s 和 dpimode_d 都为空")
-                        mark.append("无法确定版本分类：dpimode_s 和 dpimode_d 都为空")
-                        result_deal(
-                            xls=path,
-                            sheet_index=sheet_name,
-                            result_list=tmp_list,
-                            row=case["row"] + i,
-                            head2col=sheet_name2head2col[sheet_name],
-                            mark=mark,
-                            only_write=False,
-                            newpath=newpath
-                        )
-                        continue
-
-                # 处理 dpiversion_d
-                if dpiversion_d == "target_version":
-                    # 优先使用 dpimode_d，如果为空则使用 dpimode_s
-                    mode_for_version_d = dpimode_d if dpimode_d else dpimode_s
-                    if mode_for_version_d:
-                        try:
-                            dpiversion_d = resolve_version_target(
-                                dpiversion_d, mode_for_version_d, sheet_name, config, rdm_refreshed
-                            )
-                            logger.info(f"→ dpiversion_d 替换为：{dpiversion_d}")
-                        except Exception as e:
-                            logger.error(f"✗ 无法获取目标版本：{e}")
-                            mark.append(f"无法获取目标版本：{str(e)}")
-                            result_deal(
-                                xls=path,
-                                sheet_index=sheet_name,
-                                result_list=tmp_list,
-                                row=case["row"] + i,
-                                head2col=sheet_name2head2col[sheet_name],
-                                mark=mark,
-                                only_write=False,
-                                newpath=newpath
-                            )
-                            continue
-                    else:
-                        logger.error("✗ 无法确定版本分类：dpimode_d 和 dpimode_s 都为空")
-                        mark.append("无法确定版本分类：dpimode_d 和 dpimode_s 都为空")
-                        result_deal(
-                            xls=path,
-                            sheet_index=sheet_name,
-                            result_list=tmp_list,
-                            row=case["row"] + i,
-                            head2col=sheet_name2head2col[sheet_name],
-                            mark=mark,
-                            only_write=False,
-                            newpath=newpath
-                        )
-                        continue
-
-                # 解析 xsa.json 预修改配置
-                # 格式示例："dpi.vlan_multiplexing": 2, "flow.ipv4_hash_ksize": 302
-                tmp = case.get("xsa.json预修改", "") or ""
-                xsa_modify_dict = dict(
-                    map(
-                        lambda x: (eval(x[0]), eval(x[1])),
-                        re.findall(r'(".*?")\s*:\s*("(?:.*?)"|[^",\s]+)', tmp)
-                    )
-                )
-
-                # 解析源版本开关参数
-                tmp = case.get("switch_param_s", "") or ""
-                switch_param_s_dict = dict(
-                    map(
-                        lambda x: (eval(x[0]), eval(x[1])),
-                        re.findall(r'(".*?")\s*:\s*("(?:.*?)"|[^",\s]+)', tmp)
-                    )
-                )
-
-                # 解析目标版本开关参数
-                tmp = case.get("switch_param_d", "") or ""
-                switch_param_d_dict = dict(
-                    map(
-                        lambda x: (eval(x[0]), eval(x[1])),
-                        re.findall(r'(".*?")\s*:\s*("(?:.*?)"|[^",\s]+)', tmp)
-                    )
-                )
-
-                logger.info(f"→ 用例参数：")
-                logger.info(f"  → 安装类型：{installtype}")
-                logger.info(f"  → 源版本：{dpiversion_s}，目标版本：{dpiversion_d}")
-                logger.info(f"  → 源模式：{dpimode_s}，目标模式：{dpimode_d}")
-                logger.info(f"  → 优先使用备份 DPI：{prefer_backup_dpi_s}")
-                logger.info(f"  → 优先使用已有安装包（源）：{prefer_backup_pkt_s}")
-                logger.info(f"  → 优先使用已有安装包（目标）：{prefer_backup_pkt_d}")
-                if xsa_modify_dict:
-                    logger.info(f"  → xsa.json 修改项：{xsa_modify_dict}")
-                if switch_param_s_dict:
-                    logger.info(f"  → 源版本开关参数：{switch_param_s_dict}")
-                if switch_param_d_dict:
-                    logger.info(f"  → 目标版本开关参数：{switch_param_d_dict}")
-
-                # ==================== 执行全新安装 ====================
-                if installtype == "全新安装":
-                    logger.info("")
-                    logger.info("▶ 执行全新安装")
-
-                    # 获取目标版本的 FTP 路径
                     try:
-                        ftp_path_d = get_ftp_path_with_auto_update(
-                            version=dpiversion_d,
-                            mode=dpimode_d
+                        ftp_path = auto_update_json_and_get_path(
+                            json_file=versions_json,
+                            category=category,
+                            version=version,
+                            base_url=rdm_base_url,
+                            username=rdm_username,
+                            password=rdm_password
                         )
+                        return ftp_path
+
                     except RuntimeError as e:
-                        logger.error(f"✗ 获取目标版本 FTP 路径失败：{e}")
-                        logger.error(f"✗ 跳过当前 Sheet：{sheet_name}")
-                        break  # 跳出当前 sheet 的用例循环
+                        # 5. 更新后仍未找到，记录错误并跳过当前 sheet
+                        logger.error(f"✗ 无法获取版本 {version} 的 FTP 路径：{e}")
+                        raise  # 向上抛出，由外层捕获并跳过 sheet
 
-                    # 解析 FTP 地址
-                    ftphost, ftppath = re.findall(r'ftp://(.+?\..+?\..+?\..+?)(/.+?)\s*$', ftp_path_d)[0]
+            # 获取当前 sheet 的所有用例
+            cases = sheet_name2cases[sheet_name]
 
-                    # 执行安装
-                    response = dpi_install(
-                        dpiserver=xsa,
-                        ftphost=ftphost,
-                        ftppath=ftppath,
-                        scanpktpath=prefer_backup_pkt_d,
-                        mode=dpimode_d,
-                        pcicfg=pcicfg,
-                        modified_param=switch_param_d_dict,
-                        timeout=900,
-                        user="weihang",
-                        password="Qq111222",
-                        upms=False,
-                        dpipath_bak=path_dpibak,
-                        mod_switch_version=mod_switch_version
-                    )
+            # 遍历每个用例组
+            for case_name, case_list in cases.items():
+                # 跳过空用例名或未标记执行的用例
+                if not case_name or str(case_list[0]["执行状态"]) not in ("1", "1.0"):
+                    continue
 
-                    if not response:
-                        mark.append("安装失败")
+                # 遍历用例组中的每个用例
+                for i in range(len(case_list)):
+                    case = case_list[i]
+                    counter += 1
 
-                    # 写入结果到 Excel
-                    result_deal(
-                        xls=path,
-                        sheet_index=sheet_name,
-                        result_list=tmp_list,
-                        row=case["row"] + i,
-                        head2col=sheet_name2head2col[sheet_name],
-                        mark=mark,
-                        only_write=False,
-                        newpath=newpath
-                    )
-                    logger.info("✓ 全新安装完成")
+                    # 处理路径（第一次使用原路径，后续使用新路径）
+                    if counter != 1:
+                        path = newpath
 
-                # ==================== 执行模式切换或升级 ====================
-                elif installtype in ("模式切换", "升级"):
+                    # ==================== 日志文件切换 ====================
+                    # 如果策略是按用例拆分，切换到新的日志文件
+                    if log_strategy == "by_case":
+                        safe_case_name = sanitize_case_name(case_name)
+                        log_file = f"{session_id}_{sheet_name}_{safe_case_name}.log"
+                        dynamic_handler.switch_file(log_file)
+
+                    # 打印用例分隔符
+                    print_case_separator(case_name, logger)
+
                     logger.info("")
-                    logger.info("▶ 执行源 DPI 安装")
+                    logger.info("┌" + "─" * 78 + "┐")
+                    text = f" 用例：{case_name} (第 {i + 1} 项)"
+                    text_width = get_display_width(text)
+                    right_spaces = 78 - text_width
+                    logger.info("│" + text + " " * right_spaces + "│")
+                    logger.info("└" + "─" * 78 + "┘")
 
-                    # 测试前统一关闭 agent（开关关闭时）
-                    if not use_upgrade_system:
-                        logger.info("→ 测试前关闭 agent...")
-                        xsa.stop_agent()
+                    # ==================== 解析用例参数 ====================
+                    result = "Pass"
+                    mark = list()
+                    tmp_list = list()  # 存储写入 Excel 的结果数据
 
-                    # 备份当前 DPI
-                    logger.info("→ 备份当前 DPI 程序...")
-                    xsa.dpibak(bakpath=path_dpibak)
+                    # 安装类型：全新安装、模式切换、升级
+                    installtype = case.get("安装类型", "")
 
-                    # 确定后续操作模式
-                    # 0: 不需要安装（当前版本已满足）
-                    # 1: 需要切换模式（从备份恢复）
-                    # 2: 需要全新安装
-                    follow_up_mode = 2
+                    # 是否优先使用备份
+                    prefer_backup_dpi_s = case.get("优先使用备份dpi_s", "") == "是"
+                    prefer_backup_pkt_s = case.get("优先使用存在安装包_s", "") == "是"
+                    prefer_backup_pkt_d = case.get("优先使用存在安装包_d", "") == "是"
 
-                    if prefer_backup_dpi_s:
-                        # 检查当前 DPI 版本是否满足要求
-                        logger.info("→ 检查当前 DPI 版本...")
-                        if xsa.isdir("/opt/dpi") and xsa.get_dpiversion() == dpiversion_s:
-                            logger.info(f"✓ 当前 DPI 版本已是 {dpiversion_s}，无需重新安装")
-                            follow_up_mode = 1
-                        else:
-                            # 当前版本不满足，尝试从备份目录恢复
-                            logger.info("→ 当前 DPI 版本不满足要求，扫描备份目录...")
+                    # 版本和模式配置
+                    dpiversion_s = case.get("dpiversion_s", "")
+                    dpiversion_d = case.get("dpiversion_d", "")
+                    dpimode_s = case.get("dpimode_s", "")
+                    dpimode_d = case.get("dpimode_d", "")
 
-                            # 清理当前 DPI
-                            if xsa.isdir("/opt/dpi"):
-                                logger.info("→ 清理当前 DPI 程序...")
-                                xsa.stop()
-                                xsa.rm("/opt/dpi")
-
-                            # 扫描备份目录查找匹配版本和模式
-                            logger.info(f"→ 扫描备份目录：{path_list_scan_dpi}")
-                            break_flag = False
-
-                            for path_tmp in path_list_scan_dpi:
-                                if not xsa.isdir(path_tmp):
-                                    logger.info(f"  → 备份目录不存在：{path_tmp}")
-                                    continue
-
-                                # 查找版本文件
-                                for path_ver in xsa.listdir(path=path_tmp, args="-type f -name ver.txt", maxdepth=2):
-                                    dpipath_tmp = path_tmp.rstrip("/") + "/" + os.path.dirname(path_ver)
-                                    logger.info(f"  → 检查备份版本：{dpipath_tmp}")
-
-                                    # 检查版本号是否匹配
-                                    backup_version = xsa.get_dpiversion(dpipath_tmp)
-                                    if backup_version != dpiversion_s:
-                                        logger.info(f"    → 版本不匹配（期望: {dpiversion_s}, 实际: {backup_version}），跳过")
-                                        continue
-
-                                    # 从备份目录中获取模式
-                                    backup_mode = xsa.get_dpimode(dpipath_tmp)
-                                    if not backup_mode:
-                                        logger.info(f"    → 备份中无模式信息，跳过")
-                                        continue
-
-                                    logger.info(f"    → 备份模式：{backup_mode}")
-
-                                    # 检查模式是否匹配
-                                    if backup_mode == dpimode_s:
-                                        # 找到精确匹配（版本+模式）
-                                        follow_up_mode = 1
-                                        logger.info(f"  ✓ 找到精确匹配（版本+模式）：{dpipath_tmp}")
-
-                                        # 执行恢复
-                                        cmd = f"cp -r {dpipath_tmp} /opt/dpi"
-                                        logger.info(f"  → 执行命令：{cmd}")
-                                        xsa.cmd(cmd)
-                                        xsa.cmd("ldconfig")
-                                        time.sleep(3)
-
-                                        break_flag = True
-                                        break
-                                    else:
-                                        logger.info(f"    → 模式不匹配（期望: {dpimode_s}, 实际: {backup_mode}），跳过")
-
-                                if break_flag:
-                                    break
-
-                            if not break_flag:
-                                logger.info(f"→ 未找到版本 {dpiversion_s} 模式 {dpimode_s} 的可用备份，需要全新安装")
-                                follow_up_mode = 2
-
-                    # 根据模式执行相应操作
-                    if follow_up_mode == 0:
-                        # 无需操作
-                        pass
-
-                    elif follow_up_mode == 1:
-                        # 执行模式切换
-                        logger.info(f"→ 执行版本 {dpiversion_s} 模式切换到 {dpimode_s}...")
-
-                        # 根据模式获取 args 参数
-                        mod_switch_args = get_mod_switch_args(dpimode_s, mod_switch_version)
-
-                        result_mod_switch = xsa.mod_switch(
-                            mode=dpimode_s,
-                            args=mod_switch_args,
-                            modified_param=switch_param_s_dict,
-                            pcicfg=pcicfg,
-                            timeout=900
-                        )
-
-                        if not result_mod_switch["result"]:
-                            mark += result_mod_switch["mark"]
-                            logger.error(f"✗ 版本 {dpiversion_s} 模式切换失败")
-
-                            result_deal(
-                                xls=path,
-                                sheet_index=sheet_name,
-                                result_list=tmp_list,
-                                row=case["row"] + i,
-                                head2col=sheet_name2head2col[sheet_name],
-                                mark=mark,
-                                only_write=False,
-                                newpath=newpath
-                            )
-                            continue
-
-                    else:
-                        # 执行全新安装
-                        logger.info(f"→ 执行版本 {dpiversion_s} 全新安装，模式 {dpimode_s}...")
-
-                        # 优化：先尝试从已有安装包安装，失败后再获取 FTP 路径
-                        ftp_path_s = None
-                        try:
-                            ftp_path_s = get_ftp_path_with_auto_update(
-                                version=dpiversion_s,
-                                mode=dpimode_s
-                            )
-                        except RuntimeError as e:
-                            logger.warning(f"⚠ 获取源版本 FTP 路径失败：{e}")
-
-                            # 如果配置了"优先使用存在安装包_s"，尝试扫描已有安装包
-                            if prefer_backup_pkt_s:
-                                logger.info("→ 尝试扫描目标服务器已有安装包...")
-                                # 这里需要根据版本号构造安装包名称模式
-                                # 由于无法直接获取安装包路径，继续尝试其他方式
-                                logger.warning("⚠ 无法通过已有安装包解决，跳过当前用例")
-                                mark.append(f"获取 FTP 路径失败：{str(e)}")
+                    # 处理 target_version 替换
+                    # 处理 dpiversion_s
+                    if dpiversion_s == "target_version":
+                        # 优先使用 dpimode_s，如果为空则使用 dpimode_d
+                        mode_for_version_s = dpimode_s if dpimode_s else dpimode_d
+                        if mode_for_version_s:
+                            try:
+                                dpiversion_s = resolve_version_target(
+                                    dpiversion_s, mode_for_version_s, sheet_name, config, rdm_refreshed
+                                )
+                                logger.info(f"→ dpiversion_s 替换为：{dpiversion_s}")
+                            except Exception as e:
+                                logger.error(f"✗ 无法获取目标版本：{e}")
+                                mark.append(f"无法获取目标版本：{str(e)}")
                                 result_deal(
                                     xls=path,
                                     sheet_index=sheet_name,
@@ -1470,13 +1165,9 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
                                     newpath=newpath
                                 )
                                 continue
-                            else:
-                                logger.error(f"✗ 跳过当前 Sheet：{sheet_name}")
-                                break
-
-                        if not ftp_path_s:
-                            logger.error(f"✗ 无法获取版本 {dpiversion_s} 的安装路径")
-                            mark.append(f"无法获取安装路径")
+                        else:
+                            logger.error("✗ 无法确定版本分类：dpimode_s 和 dpimode_d 都为空")
+                            mark.append("无法确定版本分类：dpimode_s 和 dpimode_d 都为空")
                             result_deal(
                                 xls=path,
                                 sheet_index=sheet_name,
@@ -1489,17 +1180,116 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
                             )
                             continue
 
-                        ftphost, ftppath = re.findall(r'ftp://(.+?\..+?\..+?\..+?)(/.+?)\s*$', ftp_path_s)[0]
+                    # 处理 dpiversion_d
+                    if dpiversion_d == "target_version":
+                        # 优先使用 dpimode_d，如果为空则使用 dpimode_s
+                        mode_for_version_d = dpimode_d if dpimode_d else dpimode_s
+                        if mode_for_version_d:
+                            try:
+                                dpiversion_d = resolve_version_target(
+                                    dpiversion_d, mode_for_version_d, sheet_name, config, rdm_refreshed
+                                )
+                                logger.info(f"→ dpiversion_d 替换为：{dpiversion_d}")
+                            except Exception as e:
+                                logger.error(f"✗ 无法获取目标版本：{e}")
+                                mark.append(f"无法获取目标版本：{str(e)}")
+                                result_deal(
+                                    xls=path,
+                                    sheet_index=sheet_name,
+                                    result_list=tmp_list,
+                                    row=case["row"] + i,
+                                    head2col=sheet_name2head2col[sheet_name],
+                                    mark=mark,
+                                    only_write=False,
+                                    newpath=newpath
+                                )
+                                continue
+                        else:
+                            logger.error("✗ 无法确定版本分类：dpimode_d 和 dpimode_s 都为空")
+                            mark.append("无法确定版本分类：dpimode_d 和 dpimode_s 都为空")
+                            result_deal(
+                                xls=path,
+                                sheet_index=sheet_name,
+                                result_list=tmp_list,
+                                row=case["row"] + i,
+                                head2col=sheet_name2head2col[sheet_name],
+                                mark=mark,
+                                only_write=False,
+                                newpath=newpath
+                            )
+                            continue
 
+                    # 解析 xsa.json 预修改配置
+                    # 格式示例："dpi.vlan_multiplexing": 2, "flow.ipv4_hash_ksize": 302
+                    tmp = case.get("xsa.json预修改", "") or ""
+                    xsa_modify_dict = dict(
+                        map(
+                            lambda x: (eval(x[0]), eval(x[1])),
+                            re.findall(r'(".*?")\s*:\s*("(?:.*?)"|[^",\s]+)', tmp)
+                        )
+                    )
+
+                    # 解析源版本开关参数
+                    tmp = case.get("switch_param_s", "") or ""
+                    switch_param_s_dict = dict(
+                        map(
+                            lambda x: (eval(x[0]), eval(x[1])),
+                            re.findall(r'(".*?")\s*:\s*("(?:.*?)"|[^",\s]+)', tmp)
+                        )
+                    )
+
+                    # 解析目标版本开关参数
+                    tmp = case.get("switch_param_d", "") or ""
+                    switch_param_d_dict = dict(
+                        map(
+                            lambda x: (eval(x[0]), eval(x[1])),
+                            re.findall(r'(".*?")\s*:\s*("(?:.*?)"|[^",\s]+)', tmp)
+                        )
+                    )
+
+                    logger.info(f"→ 用例参数：")
+                    logger.info(f"  → 安装类型：{installtype}")
+                    logger.info(f"  → 源版本：{dpiversion_s}，目标版本：{dpiversion_d}")
+                    logger.info(f"  → 源模式：{dpimode_s}，目标模式：{dpimode_d}")
+                    logger.info(f"  → 优先使用备份 DPI：{prefer_backup_dpi_s}")
+                    logger.info(f"  → 优先使用已有安装包（源）：{prefer_backup_pkt_s}")
+                    logger.info(f"  → 优先使用已有安装包（目标）：{prefer_backup_pkt_d}")
+                    if xsa_modify_dict:
+                        logger.info(f"  → xsa.json 修改项：{xsa_modify_dict}")
+                    if switch_param_s_dict:
+                        logger.info(f"  → 源版本开关参数：{switch_param_s_dict}")
+                    if switch_param_d_dict:
+                        logger.info(f"  → 目标版本开关参数：{switch_param_d_dict}")
+
+                    # ==================== 执行全新安装 ====================
+                    if installtype == "全新安装":
+                        logger.info("")
+                        logger.info("▶ 执行全新安装")
+
+                        # 获取目标版本的 FTP 路径
+                        try:
+                            ftp_path_d = get_ftp_path_with_auto_update(
+                                version=dpiversion_d,
+                                mode=dpimode_d
+                            )
+                        except RuntimeError as e:
+                            logger.error(f"✗ 获取目标版本 FTP 路径失败：{e}")
+                            logger.error(f"✗ 跳过当前 Sheet：{sheet_name}")
+                            break  # 跳出当前 sheet 的用例循环
+
+                        # 解析 FTP 地址
+                        ftphost, ftppath = re.findall(r'ftp://(.+?\..+?\..+?\..+?)(/.+?)\s*$', ftp_path_d)[0]
+
+                        # 执行安装
                         response = dpi_install(
                             dpiserver=xsa,
                             ftphost=ftphost,
                             ftppath=ftppath,
-                            scanpktpath=prefer_backup_pkt_s,
-                            mode=dpimode_s,
+                            scanpktpath=prefer_backup_pkt_d,
+                            mode=dpimode_d,
                             pcicfg=pcicfg,
-                            modified_param=switch_param_s_dict,
-                            timeout=600,
+                            modified_param=switch_param_d_dict,
+                            timeout=900,
                             user="weihang",
                             password="Qq111222",
                             upms=False,
@@ -1509,145 +1299,355 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
 
                         if not response:
                             mark.append("安装失败")
-                            result_deal(
-                                xls=path,
-                                sheet_index=sheet_name,
-                                result_list=tmp_list,
-                                row=case["row"] + i,
-                                head2col=sheet_name2head2col[sheet_name],
-                                mark=mark,
-                                only_write=False,
-                                newpath=newpath
-                            )
-                            continue
 
-                    logger.info("✓ 源 DPI 安装完成")
-
-                    # ==================== 执行目标操作 ====================
-                    if installtype == "模式切换":
-                        # 执行模式切换
-                        logger.info("")
-                        logger.info("▶ 执行目标 DPI 模式切换")
-                        logger.info(f"  → 切换参数：版本 {dpiversion_s}，模式 {dpimode_d}")
-                        logger.info(f"  → 开关参数：{switch_param_d_dict}")
-                        logger.info(f"  → PCI 配置：{pcicfg}")
-
-                        # 根据模式获取 args 参数
-                        mod_switch_args = get_mod_switch_args(dpimode_d, mod_switch_version)
-
-                        result_mod_switch = xsa.mod_switch(
-                            mode=dpimode_d,
-                            args=mod_switch_args,
-                            modified_param=switch_param_d_dict,
-                            pcicfg=pcicfg,
-                            timeout=900
+                        # 写入结果到 Excel
+                        result_deal(
+                            xls=path,
+                            sheet_index=sheet_name,
+                            result_list=tmp_list,
+                            row=case["row"] + i,
+                            head2col=sheet_name2head2col[sheet_name],
+                            mark=mark,
+                            only_write=False,
+                            newpath=newpath
                         )
+                        logger.info("✓ 全新安装完成")
 
-                        if not result_mod_switch["result"]:
-                            mark += result_mod_switch["mark"]
-                            logger.error(f"✗ 版本 {dpiversion_d} 模式切换失败")
-
-                            result_deal(
-                                xls=path,
-                                sheet_index=sheet_name,
-                                result_list=tmp_list,
-                                row=case["row"] + i,
-                                head2col=sheet_name2head2col[sheet_name],
-                                mark=mark,
-                                only_write=False,
-                                newpath=newpath
-                            )
-                            continue
-
-                        logger.info("✓ 目标 DPI 模式切换完成")
-
-                    elif installtype == "升级":
-                        # 执行版本升级
+                    # ==================== 执行模式切换或升级 ====================
+                    elif installtype in ("模式切换", "升级"):
                         logger.info("")
-                        logger.info("▶ 执行目标 DPI 版本升级")
+                        logger.info("▶ 执行源 DPI 安装")
 
-                        # 预修改 xsa.json 配置
-                        if xsa_modify_dict:
-                            logger.info(f"→ 预修改 xsa.json 配置：{xsa_modify_dict}")
-                            xsa.modify_xsajson(**xsa_modify_dict)
+                        # 测试前统一关闭 agent（开关关闭时）
+                        if not use_upgrade_system:
+                            logger.info("→ 测试前关闭 agent...")
+                            xsa.stop_agent()
 
-                        # 执行升级
-                        logger.info(f"→ 执行版本升级：{dpiversion_s} -> {dpiversion_d}")
+                        # 备份当前 DPI
+                        logger.info("→ 备份当前 DPI 程序...")
+                        xsa.dpibak(bakpath=path_dpibak)
 
-                        # ==================== 升级系统接管 ====================
-                        if use_upgrade_system:
-                            # 升级系统接管，不需要准备升级脚本
-                            logger.info("→ 升级系统接管升级流程，无需准备升级脚本")
+                        # 确定后续操作模式
+                        # 0: 不需要安装（当前版本已满足）
+                        # 1: 需要切换模式（从备份恢复）
+                        # 2: 需要全新安装
+                        follow_up_mode = 2
 
-                            response = xsa.wait_upgrade_system_complete(
-                                dpiversion=dpiversion_d,
-                                upgrade_start_timeout=upgrade_start_timeout,
-                                upgrade_complete_timeout=upgrade_complete_timeout
+                        if prefer_backup_dpi_s:
+                            # 检查当前 DPI 版本是否满足要求
+                            logger.info("→ 检查当前 DPI 版本...")
+                            if xsa.isdir("/opt/dpi") and xsa.get_dpiversion() == dpiversion_s:
+                                logger.info(f"✓ 当前 DPI 版本已是 {dpiversion_s}，无需重新安装")
+                                follow_up_mode = 1
+                            else:
+                                # 当前版本不满足，尝试从备份目录恢复
+                                logger.info("→ 当前 DPI 版本不满足要求，扫描备份目录...")
+
+                                # 清理当前 DPI
+                                if xsa.isdir("/opt/dpi"):
+                                    logger.info("→ 清理当前 DPI 程序...")
+                                    xsa.stop()
+                                    xsa.rm("/opt/dpi")
+
+                                # 扫描备份目录查找匹配版本和模式
+                                logger.info(f"→ 扫描备份目录：{path_list_scan_dpi}")
+                                break_flag = False
+
+                                for path_tmp in path_list_scan_dpi:
+                                    if not xsa.isdir(path_tmp):
+                                        logger.info(f"  → 备份目录不存在：{path_tmp}")
+                                        continue
+
+                                    # 查找版本文件
+                                    for path_ver in xsa.listdir(path=path_tmp, args="-type f -name ver.txt", maxdepth=2):
+                                        dpipath_tmp = path_tmp.rstrip("/") + "/" + os.path.dirname(path_ver)
+                                        logger.info(f"  → 检查备份版本：{dpipath_tmp}")
+
+                                        # 检查版本号是否匹配
+                                        backup_version = xsa.get_dpiversion(dpipath_tmp)
+                                        if backup_version != dpiversion_s:
+                                            logger.info(f"    → 版本不匹配（期望: {dpiversion_s}, 实际: {backup_version}），跳过")
+                                            continue
+
+                                        # 从备份目录中获取模式
+                                        backup_mode = xsa.get_dpimode(dpipath_tmp)
+                                        if not backup_mode:
+                                            logger.info(f"    → 备份中无模式信息，跳过")
+                                            continue
+
+                                        logger.info(f"    → 备份模式：{backup_mode}")
+
+                                        # 检查模式是否匹配
+                                        if backup_mode == dpimode_s:
+                                            # 找到精确匹配（版本+模式）
+                                            follow_up_mode = 1
+                                            logger.info(f"  ✓ 找到精确匹配（版本+模式）：{dpipath_tmp}")
+
+                                            # 执行恢复
+                                            cmd = f"cp -r {dpipath_tmp} /opt/dpi"
+                                            logger.info(f"  → 执行命令：{cmd}")
+                                            xsa.cmd(cmd)
+                                            xsa.cmd("ldconfig")
+                                            time.sleep(3)
+
+                                            break_flag = True
+                                            break
+                                        else:
+                                            logger.info(f"    → 模式不匹配（期望: {dpimode_s}, 实际: {backup_mode}），跳过")
+
+                                    if break_flag:
+                                        break
+
+                                if not break_flag:
+                                    logger.info(f"→ 未找到版本 {dpiversion_s} 模式 {dpimode_s} 的可用备份，需要全新安装")
+                                    follow_up_mode = 2
+
+                        # 根据模式执行相应操作
+                        if follow_up_mode == 0:
+                            # 无需操作
+                            pass
+
+                        elif follow_up_mode == 1:
+                            # 执行模式切换
+                            logger.info(f"→ 执行版本 {dpiversion_s} 模式切换到 {dpimode_s}...")
+
+                            # 根据模式获取 args 参数
+                            mod_switch_args = get_mod_switch_args(dpimode_s, mod_switch_version)
+
+                            result_mod_switch = xsa.mod_switch(
+                                mode=dpimode_s,
+                                args=mod_switch_args,
+                                modified_param=switch_param_s_dict,
+                                pcicfg=pcicfg,
+                                timeout=900
                             )
 
-                        # ==================== 本地升级流程 ====================
+                            if not result_mod_switch["result"]:
+                                mark += result_mod_switch["mark"]
+                                logger.error(f"✗ 版本 {dpiversion_s} 模式切换失败")
+
+                                result_deal(
+                                    xls=path,
+                                    sheet_index=sheet_name,
+                                    result_list=tmp_list,
+                                    row=case["row"] + i,
+                                    head2col=sheet_name2head2col[sheet_name],
+                                    mark=mark,
+                                    only_write=False,
+                                    newpath=newpath
+                                )
+                                continue
+
                         else:
-                            # 升级场景：使用源版本模式确定分类（升级不改变模式）
+                            # 执行全新安装
+                            logger.info(f"→ 执行版本 {dpiversion_s} 全新安装，模式 {dpimode_s}...")
+
+                            # 优化：先尝试从已有安装包安装，失败后再获取 FTP 路径
+                            ftp_path_s = None
                             try:
-                                ftp_path_d = get_ftp_path_with_auto_update(
-                                    version=dpiversion_d,
-                                    mode=dpimode_s  # 使用源版本模式
+                                ftp_path_s = get_ftp_path_with_auto_update(
+                                    version=dpiversion_s,
+                                    mode=dpimode_s
                                 )
                             except RuntimeError as e:
-                                logger.error(f"✗ 获取目标版本 FTP 路径失败：{e}")
-                                logger.error(f"✗ 跳过当前 Sheet：{sheet_name}")
-                                break
+                                logger.warning(f"⚠ 获取源版本 FTP 路径失败：{e}")
 
-                            ftphost, ftppath = re.findall(r'ftp://(.+?\..+?\..+?\..+?)(/.+?)\s*$', ftp_path_d)[0]
+                                # 如果配置了"优先使用存在安装包_s"，尝试扫描已有安装包
+                                if prefer_backup_pkt_s:
+                                    logger.info("→ 尝试扫描目标服务器已有安装包...")
+                                    # 这里需要根据版本号构造安装包名称模式
+                                    # 由于无法直接获取安装包路径，继续尝试其他方式
+                                    logger.warning("⚠ 无法通过已有安装包解决，跳过当前用例")
+                                    mark.append(f"获取 FTP 路径失败：{str(e)}")
+                                    result_deal(
+                                        xls=path,
+                                        sheet_index=sheet_name,
+                                        result_list=tmp_list,
+                                        row=case["row"] + i,
+                                        head2col=sheet_name2head2col[sheet_name],
+                                        mark=mark,
+                                        only_write=False,
+                                        newpath=newpath
+                                    )
+                                    continue
+                                else:
+                                    logger.error(f"✗ 跳过当前 Sheet：{sheet_name}")
+                                    break
+
+                            if not ftp_path_s:
+                                logger.error(f"✗ 无法获取版本 {dpiversion_s} 的安装路径")
+                                mark.append(f"无法获取安装路径")
+                                result_deal(
+                                    xls=path,
+                                    sheet_index=sheet_name,
+                                    result_list=tmp_list,
+                                    row=case["row"] + i,
+                                    head2col=sheet_name2head2col[sheet_name],
+                                    mark=mark,
+                                    only_write=False,
+                                    newpath=newpath
+                                )
+                                continue
+
+                            ftphost, ftppath = re.findall(r'ftp://(.+?\..+?\..+?\..+?)(/.+?)\s*$', ftp_path_s)[0]
 
                             response = dpi_install(
                                 dpiserver=xsa,
                                 ftphost=ftphost,
                                 ftppath=ftppath,
-                                dpiversion=dpiversion_d,
-                                scanpktpath=prefer_backup_pkt_d,
-                                mode=None,
-                                pcicfg=None,
-                                modified_param=None,
-                                timeout=upgrade_complete_timeout,
+                                scanpktpath=prefer_backup_pkt_s,
+                                mode=dpimode_s,
+                                pcicfg=pcicfg,
+                                modified_param=switch_param_s_dict,
+                                timeout=600,
                                 user="weihang",
                                 password="Qq111222",
-                                upms=True,
+                                upms=False,
                                 dpipath_bak=path_dpibak,
-                                xsa_modify_dict=xsa_modify_dict,
                                 mod_switch_version=mod_switch_version
                             )
 
-                        if not response["result"]:
-                            mark += response["mark"]
-                            logger.error(f"✗ 版本 {dpiversion_d} 升级失败")
+                            if not response:
+                                mark.append("安装失败")
+                                result_deal(
+                                    xls=path,
+                                    sheet_index=sheet_name,
+                                    result_list=tmp_list,
+                                    row=case["row"] + i,
+                                    head2col=sheet_name2head2col[sheet_name],
+                                    mark=mark,
+                                    only_write=False,
+                                    newpath=newpath
+                                )
+                                continue
 
-                            result_deal(
-                                xls=path,
-                                sheet_index=sheet_name,
-                                result_list=tmp_list,
-                                row=case["row"] + i,
-                                head2col=sheet_name2head2col[sheet_name],
-                                mark=mark,
-                                only_write=False,
-                                newpath=newpath
+                        logger.info("✓ 源 DPI 安装完成")
+
+                        # ==================== 执行目标操作 ====================
+                        if installtype == "模式切换":
+                            # 执行模式切换
+                            logger.info("")
+                            logger.info("▶ 执行目标 DPI 模式切换")
+                            logger.info(f"  → 切换参数：版本 {dpiversion_s}，模式 {dpimode_d}")
+                            logger.info(f"  → 开关参数：{switch_param_d_dict}")
+                            logger.info(f"  → PCI 配置：{pcicfg}")
+
+                            # 根据模式获取 args 参数
+                            mod_switch_args = get_mod_switch_args(dpimode_d, mod_switch_version)
+
+                            result_mod_switch = xsa.mod_switch(
+                                mode=dpimode_d,
+                                args=mod_switch_args,
+                                modified_param=switch_param_d_dict,
+                                pcicfg=pcicfg,
+                                timeout=900
                             )
-                            continue
 
-                        logger.info("✓ 目标 DPI 版本升级完成")
+                            if not result_mod_switch["result"]:
+                                mark += result_mod_switch["mark"]
+                                logger.error(f"✗ 版本 {dpiversion_d} 模式切换失败")
 
-                # ==================== 写入最终结果 ====================
-                logger.info(f"✓ 用例执行完成：{case_name}")
-                result_deal(
-                    xls=path,
-                    sheet_index=sheet_name,
-                    result_list=tmp_list,
-                    row=case["row"] + i,
-                    head2col=sheet_name2head2col[sheet_name],
-                    mark=mark,
-                    only_write=False,
-                    newpath=newpath
-                )
+                                result_deal(
+                                    xls=path,
+                                    sheet_index=sheet_name,
+                                    result_list=tmp_list,
+                                    row=case["row"] + i,
+                                    head2col=sheet_name2head2col[sheet_name],
+                                    mark=mark,
+                                    only_write=False,
+                                    newpath=newpath
+                                )
+                                continue
+
+                            logger.info("✓ 目标 DPI 模式切换完成")
+
+                        elif installtype == "升级":
+                            # 执行版本升级
+                            logger.info("")
+                            logger.info("▶ 执行目标 DPI 版本升级")
+
+                            # 预修改 xsa.json 配置
+                            if xsa_modify_dict:
+                                logger.info(f"→ 预修改 xsa.json 配置：{xsa_modify_dict}")
+                                xsa.modify_xsajson(**xsa_modify_dict)
+
+                            # 执行升级
+                            logger.info(f"→ 执行版本升级：{dpiversion_s} -> {dpiversion_d}")
+
+                            # ==================== 升级系统接管 ====================
+                            if use_upgrade_system:
+                                # 升级系统接管，不需要准备升级脚本
+                                logger.info("→ 升级系统接管升级流程，无需准备升级脚本")
+
+                                response = xsa.wait_upgrade_system_complete(
+                                    dpiversion=dpiversion_d,
+                                    upgrade_start_timeout=upgrade_start_timeout,
+                                    upgrade_complete_timeout=upgrade_complete_timeout
+                                )
+
+                            # ==================== 本地升级流程 ====================
+                            else:
+                                # 升级场景：使用源版本模式确定分类（升级不改变模式）
+                                try:
+                                    ftp_path_d = get_ftp_path_with_auto_update(
+                                        version=dpiversion_d,
+                                        mode=dpimode_s  # 使用源版本模式
+                                    )
+                                except RuntimeError as e:
+                                    logger.error(f"✗ 获取目标版本 FTP 路径失败：{e}")
+                                    logger.error(f"✗ 跳过当前 Sheet：{sheet_name}")
+                                    break
+
+                                ftphost, ftppath = re.findall(r'ftp://(.+?\..+?\..+?\..+?)(/.+?)\s*$', ftp_path_d)[0]
+
+                                response = dpi_install(
+                                    dpiserver=xsa,
+                                    ftphost=ftphost,
+                                    ftppath=ftppath,
+                                    dpiversion=dpiversion_d,
+                                    scanpktpath=prefer_backup_pkt_d,
+                                    mode=None,
+                                    pcicfg=None,
+                                    modified_param=None,
+                                    timeout=upgrade_complete_timeout,
+                                    user="weihang",
+                                    password="Qq111222",
+                                    upms=True,
+                                    dpipath_bak=path_dpibak,
+                                    xsa_modify_dict=xsa_modify_dict,
+                                    mod_switch_version=mod_switch_version
+                                )
+
+                            if not response["result"]:
+                                mark += response["mark"]
+                                logger.error(f"✗ 版本 {dpiversion_d} 升级失败")
+
+                                result_deal(
+                                    xls=path,
+                                    sheet_index=sheet_name,
+                                    result_list=tmp_list,
+                                    row=case["row"] + i,
+                                    head2col=sheet_name2head2col[sheet_name],
+                                    mark=mark,
+                                    only_write=False,
+                                    newpath=newpath
+                                )
+                                continue
+
+                            logger.info("✓ 目标 DPI 版本升级完成")
+
+                    # ==================== 写入最终结果 ====================
+                    logger.info(f"✓ 用例执行完成：{case_name}")
+                    result_deal(
+                        xls=path,
+                        sheet_index=sheet_name,
+                        result_list=tmp_list,
+                        row=case["row"] + i,
+                        head2col=sheet_name2head2col[sheet_name],
+                        mark=mark,
+                        only_write=False,
+                        newpath=newpath
+                    )
 
         finally:
             # ==================== 清理 DynamicFileHandler ====================
