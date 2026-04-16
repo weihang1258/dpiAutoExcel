@@ -293,8 +293,8 @@ def get_target_version(sheet_name: str, category: str, config: dict, mode: str, 
 
             # 获取 RDM 配置
             rdm_base_url = config.get(f"{sheet_name}_base_url", "https://10.128.4.196:2000")
-            rdm_username = config.get(f"{sheet_name}_username", "weihang")
-            rdm_password = config.get(f"{sheet_name}_password", "Qq111222")
+            rdm_username = config.get(f"{sheet_name}_install_rdm_username", "weihang")
+            rdm_password = config.get(f"{sheet_name}_install_rdm_password", "12345678")
 
             # 执行刷新
             from extract_release_path import get_multiple_projects_release_paths, save_versions_to_json
@@ -584,7 +584,7 @@ def dpi_install(
     mod_switch_version: str = "idc31",
     timeout: int = 600,
     user: str = "weihang",
-    password: str = "Qq111222",
+    password: str = "12345678",
     upms: bool = False,
     dpipath_bak: str = None,
     xsa_modify_dict: dict = None,
@@ -695,7 +695,7 @@ def dpi_install(
 
     # 连接 FTP 服务器并验证安装包是否存在
     logger.info(f"→ 连接 FTP 服务器：{ftphost}")
-    ftp = FTPclient(host=ftphost, user="weihang", passwd="Qq111222")
+    ftp = FTPclient(host=ftphost, user=user, passwd=password)
 
     logger.info(f"→ 验证安装包路径：{ftppath}")
     if not ftp.file_exists(ftppath):
@@ -945,8 +945,10 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
         - ip_xsa：DPI 服务器 IP
         - port_xsa：DPI 服务器端口
         - {sheet}_base_url：RDM 平台地址
-        - {sheet}_username：RDM 平台用户名
-        - {sheet}_password：RDM 平台密码
+        - {sheet}_install_rdm_username：RDM 平台用户名
+        - {sheet}_install_rdm_password：RDM 平台密码
+        - {sheet}_install_ftp_username：FTP 登录用户名（不填默认使用 RDM 用户名）
+        - {sheet}_install_ftp_password：FTP 登录密码（不填默认使用 RDM 密码）
         - {sheet}_paths_scan_dpi：DPI 备份扫描路径，多个路径用逗号分隔
         - {sheet}_path_dpibak：DPI 备份存放目录
         - {sheet}_pcis：PCI 列表，多个用逗号分隔
@@ -1022,12 +1024,16 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
 
             # 读取 FTP 相关配置
             rdm_base_url = config.get(f"{sheet_name}_base_url", "https://10.128.4.196:2000")
-            rdm_username = config.get(f"{sheet_name}_username", "weihang")
-            rdm_password = config.get(f"{sheet_name}_password", "Qq111222")
+            rdm_username = config.get(f"{sheet_name}_install_rdm_username", "weihang")
+            rdm_password = config.get(f"{sheet_name}_install_rdm_password", "12345678")
+            ftp_username = config.get(f"{sheet_name}_install_ftp_username", rdm_username)
+            ftp_password = config.get(f"{sheet_name}_install_ftp_password", rdm_password)
 
             logger.info(f"→ RDM 配置：")
             logger.info(f"  → 平台地址：{rdm_base_url}")
             logger.info(f"  → 用户名：{rdm_username}")
+            logger.info(f"→ FTP 配置：")
+            logger.info(f"  → 用户名：{ftp_username}")
 
             # 读取配置项
             path_list_scan_dpi = list(
@@ -1297,8 +1303,8 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
                             pcicfg=pcicfg,
                             modified_param=switch_param_d_dict,
                             timeout=900,
-                            user="weihang",
-                            password="Qq111222",
+                            user=ftp_username,
+                            password=ftp_password,
                             upms=False,
                             dpipath_bak=path_dpibak,
                             mod_switch_version=mod_switch_version
@@ -1507,8 +1513,8 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
                                 pcicfg=pcicfg,
                                 modified_param=switch_param_s_dict,
                                 timeout=600,
-                                user="weihang",
-                                password="Qq111222",
+                                user=ftp_username,
+                                password=ftp_password,
                                 upms=False,
                                 dpipath_bak=path_dpibak,
                                 mod_switch_version=mod_switch_version
@@ -1617,8 +1623,8 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
                                     pcicfg=None,
                                     modified_param=None,
                                     timeout=upgrade_complete_timeout,
-                                    user="weihang",
-                                    password="Qq111222",
+                                    user=ftp_username,
+                                    password=ftp_password,
                                     upms=True,
                                     dpipath_bak=path_dpibak,
                                     xsa_modify_dict=xsa_modify_dict,

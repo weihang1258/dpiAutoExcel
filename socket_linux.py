@@ -580,7 +580,7 @@ class SocketLinux:
             response = self.cmd(cmd, returnall=True)
             if response["code"]!= 0:
                 raise RuntimeError(f"SocketLinux.cleardpifile处理异常：{response}，对应命令：{cmd}")
-    def wget_ftp(self, remotepath, localpath, user="weihang", password="Qq111222", overwrite=True):
+    def wget_ftp(self, remotepath, localpath, user="weihang", password="12345678", overwrite=True):
         logger.info(f"下载：{remotepath} --> {localpath}")
         if self.isfile(localpath):
             logger.info(f"已经存在{localpath}")

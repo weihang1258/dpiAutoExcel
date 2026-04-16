@@ -18,7 +18,7 @@ from bs4 import BeautifulSoup
 def get_release_path_info(
     base_url: str = "https://10.128.4.196:2000",
     username: str = "weihang",
-    password: str = "Qq111222",
+    password: str = "12345678",
     project_name: str = "信息安全执行单元V1.0.6.0",
     headless: bool = True,
     debug: bool = True,
@@ -81,7 +81,7 @@ def get_multiple_projects_release_paths(
     projects: list,
     base_url: str = "https://10.128.4.196:2000",
     username: str = "weihang",
-    password: str = "Qq111222",
+    password: str = "12345678",
     headless: bool = True,
     debug: bool = True,
     verbose: bool = False

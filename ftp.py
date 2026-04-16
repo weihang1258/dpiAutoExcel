@@ -137,7 +137,7 @@ if __name__ == '__main__':
     # remotefile = "/" + path_tmp
     print(host)
     print(remotedir)
-    ftp = FTPclient(host=host, user="weihang", passwd="Qq111222")
+    ftp = FTPclient(host=host, user="weihang", passwd="12345678")
     logger.info(ftp.list_dir(remotedir=remotedir))
     # ftp.download(remotefile=remotefile, localfile=r"D:\weihang\Desktop\test.tar.gz")
 
