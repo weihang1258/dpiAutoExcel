@@ -289,6 +289,11 @@ def net_is_used(port, ip='127.0.0.1'):
     except:
         logger.info('%s:%d is unused' % (ip, port))
         return False
+    finally:
+        try:
+            s.close()
+        except:
+            pass
 
 
 def get_port_unused(portrange=range(10000, 65535)):

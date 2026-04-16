@@ -60,8 +60,16 @@ class VerificationSsh(object):
         # self.c.setblocking(1)
         # self.c.timeout = None
     def __del__(self):
-        if self.ssh:
-            self.ssh.close()
+        try:
+            if hasattr(self, 'c') and self.c:
+                self.c.close()
+        except:
+            pass
+        try:
+            if self.ssh:
+                self.ssh.close()
+        except:
+            pass
 
     def root(self, pwd):
         time.sleep(0.1)
@@ -232,19 +240,23 @@ class SSHManager(object):
                 raise
 
     def _sftp_connect(self):
+        transport = None
         try:
             transport = paramiko.Transport((self._host, self._port))
             transport.connect(username=self._usr, password=self._passwd)
             return paramiko.SFTPClient.from_transport(transport)
         except Exception as e:
+            if transport:
+                try:
+                    transport.close()
+                except:
+                    pass
             raise RuntimeError("sftp connect failed [%s]" % str(e))
 
     def _ssh_connect(self):
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
-            # 创建ssh对象
-            ssh = paramiko.SSHClient()
-            # 允许连接不在know_hosts文件中的主机
-            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             # 连接服务器
             ssh.connect(hostname=self._host,
                         port=self._port,
@@ -256,7 +268,14 @@ class SSHManager(object):
             print("ssh_dpi connected to [host:%s, port:%s, usr:%s, passwd:%s] failed," % (
                 self._host, self._port, self._usr, self._passwd), e)
             time.sleep(3)
-            # 连接服务器
+            # 重试前先关闭之前的连接
+            try:
+                ssh.close()
+            except:
+                pass
+            # 重新创建ssh对象并连接服务器
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             ssh.connect(hostname=self._host,
                         port=self._port,
                         username=self._usr,

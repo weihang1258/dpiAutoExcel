@@ -33,17 +33,26 @@ def decompress_gzip(compressed_data):
 class SocketLinux:
     _initialized_connections = set()
     def __init__(self, client):
+        self.client = None
         if type(client) == tuple:
             self.host, self.port = client
             logger.info(f"建立socket连接，host：{self.host},port：{self.port}")
             self.client = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
-            self.client.connect(client)
+            try:
+                self.client.connect(client)
 
-            # 判断是否首次连接，首次连接会更新系统时间
-            if str(client) not in SocketLinux._initialized_connections:
-                self.update_systime()
-                SocketLinux._initialized_connections.add(str(client))
-
+                # 判断是否首次连接，首次连接会更新系统时间
+                if str(client) not in SocketLinux._initialized_connections:
+                    self.update_systime()
+                    SocketLinux._initialized_connections.add(str(client))
+            except Exception:
+                # 连接或初始化失败，确保关闭 socket
+                if self.client:
+                    try:
+                        self.client.close()
+                    except:
+                        pass
+                raise
         else:
             self.client = client
         self.cmd_template = {"args": "ls -d /tmp/pcap_auto|wc -l", "cwd": None, "env": None, "shell": True, "stdout": subprocess.PIPE, "stderr": subprocess.PIPE, "encoding": "utf-8"}
@@ -52,13 +61,15 @@ class SocketLinux:
 
     def __del__(self):
         try:
-            self.client.close()
+            if self.client:
+                self.client.close()
         except Exception as e:
             logger.info(e)
 
     def close(self):
         try:
-            self.client.close()
+            if self.client:
+                self.client.close()
         except Exception as e:
             logger.info(e)
 

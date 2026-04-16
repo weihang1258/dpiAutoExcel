@@ -1024,16 +1024,17 @@ class Dpi(SocketLinux):
         else:
             raise Exception("无dpi程序，无法升级")
 
+        # 先检查升级结果（仅当前升级流程需要），失败则直接返回，不等待启动
+        if not use_upgrade_system and "升级成功" not in response:
+            result["result"] = False
+            result["mark"].append(f"升级失败")
+            return result
+
         logger.info(f"DPI启动中,等待超时时间：{timeout}s")
         if not self.wait_alive(timeout=timeout):
             result["result"] = False
             result["mark"].append(f"DPI启动等待{timeout}s超时失败")
             return result
-
-        # 检查升级结果（仅当前升级流程需要）
-        if not use_upgrade_system and "升级成功" not in response:
-            result["result"] = False
-            result["mark"].append(f"升级失败")
 
         # 对比xsa.json升级后的变化
         if xsa_modify_dict:
