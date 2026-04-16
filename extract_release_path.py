@@ -7,12 +7,20 @@
 """
 
 import os
+import sys
 import time
 import json
 import re
 from datetime import datetime
 from playwright.sync_api import sync_playwright, Page
 from bs4 import BeautifulSoup
+
+
+def get_base_dir():
+    """获取程序基准目录，兼容 PyInstaller exe 和源码运行两种模式"""
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(os.path.abspath(__file__))
 
 
 def get_release_path_info(
@@ -39,6 +47,11 @@ def get_release_path_info(
     Returns:
         dict: 包含 success, data, error 等字段
     """
+    # exe 模式下设置浏览器路径
+    if getattr(sys, 'frozen', False):
+        base_dir = get_base_dir()
+        os.environ["PLAYWRIGHT_BROWSERS_PATH"] = os.path.join(base_dir, "browsers")
+
     with sync_playwright() as p:
         # 优先使用 Chrome，如果不存在则尝试 Edge，最后使用 Chromium
         browser = None
@@ -102,6 +115,11 @@ def get_multiple_projects_release_paths(
         dict: {project_name: {version: [paths]}, ...}
     """
     all_results = {}
+
+    # exe 模式下设置浏览器路径
+    if getattr(sys, 'frozen', False):
+        base_dir = get_base_dir()
+        os.environ["PLAYWRIGHT_BROWSERS_PATH"] = os.path.join(base_dir, "browsers")
 
     with sync_playwright() as p:
         # 优先使用 Chrome，如果不存在则尝试 Edge，最后使用 Chromium
@@ -634,7 +652,7 @@ def process_release_data(raw_data: dict) -> dict:
 def save_versions_to_json(
     version_data: dict,
     category: str,
-    json_file: str = "versions.json"
+    json_file: str = None
 ) -> dict:
     """
     保存版本数据到 JSON 文件，并返回对比结果
@@ -671,6 +689,10 @@ def save_versions_to_json(
             }
         }
     """
+    # 如果 json_file 为 None，使用 exe 目录下的 versions.json
+    if json_file is None:
+        json_file = os.path.join(get_base_dir(), "versions.json")
+
     result = {
         "status": "created",
         "category": category,
@@ -895,4 +917,4 @@ if __name__ == "__main__":
     print("\n多个项目结果:")
     print(json.dumps(results, ensure_ascii=False, indent=2))
 
-    print(save_versions_to_json(version_data=results, category="信息安全执行单元", json_file="versions.json"))
+    print(save_versions_to_json(version_data=results, category="信息安全执行单元"))

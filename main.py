@@ -233,13 +233,155 @@ Pause
 
     logger.info("PowerShell scripts created successfully in 'exec_ps1' directory.")
 
+
+def run(excel_path, sheet=None):
+    # 生成会话ID
+    session_id = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    logger.info(f"会话ID: {session_id}")
+
+    try:
+        p_excel = parser_excel(path=excel_path)
+        excel_base, excel_name = os.path.split(excel_path)
+        excel_name_save = os.path.join("report", f"{excel_name.split('.')[0]}_{gettime(5)}.xlsx")
+        path_save = os.path.join(excel_base, excel_name_save) if excel_base else excel_name_save
+
+        def get_s_excel_path():
+            if os.path.isfile(path_save):
+                return path_save
+            else:
+                return excel_path
+
+        # 生成报告
+        if not os.path.isdir("report"):
+            os.mkdir("report")
+        if sheet:
+            tmp_sheets = [sheet]
+        else:
+            # tmp_sheets = list(p_excel.get("sheet_name2heads", dict()).keys())
+            tmp_sheets = list()
+            for sheet_name, cases in p_excel.get("sheet_name2cases", dict()).items():
+                if [i for i in list(map(lambda x: x[0].get("执行状态", 0), cases.values())) if
+                    i not in (0, "0", "", None)]:
+                    tmp_sheets.append(sheet_name)
+
+            tmp_sheets.remove("设备初始化配置") if "设备初始化配置" in tmp_sheets else None
+            tmp_sheets.remove("配置") if "配置" in tmp_sheets else None
+            tmp_sheets.remove("IP规范") if "IP规范" in tmp_sheets else None
+
+        sheet_name2minutes = dict()
+        for sheet_name in tmp_sheets:
+            # 开始时间
+            start_time = time.time()
+
+            if sheet_name in ["install"]:
+                install(p_excel=p_excel, sheets=[sheet_name], path=get_s_excel_path(), newpath=path_save, session_id=session_id)
+            else:
+                logger.error(f"sheet:{sheet_name}需要添加内部直接方法，将直接跳过")
+
+            # 结束时间
+            end_time = time.time()
+            # 计算耗时（单位：秒）
+            duration = end_time - start_time
+            # 转换为小时和分钟
+            hours = int(duration // 3600)
+            minutes = int((duration % 3600) // 60)
+            logger.info(f"sheet:{sheet_name}，执行耗时：{hours} 小时 {minutes} 分钟")
+            cur_minutes = int(duration // 60)
+            sheet_name2minutes[sheet_name] = cur_minutes
+
+        # 删除多余的sheet
+        logger.info(f"整理报告sheet：{path_save}")
+        xlsx = None
+        try:
+            xlsx = Excel(path_save)
+            delete_flag = False
+            for name in [sheet.name for sheet in xlsx.workbook.sheets]:
+                if name not in tmp_sheets:
+                    try:
+                        xlsx.workbook.sheets[name].delete()
+                        delete_flag = True
+                    except Exception as e:
+                        logger.warning(f"删除 sheet {name} 失败：{e}")
+            if delete_flag:
+                xlsx.save(path=path_save)
+        except Exception as e:
+            logger.error(f"整理报告 sheet 失败：{e}")
+        finally:
+            if xlsx:
+                try:
+                    xlsx.close()
+                except:
+                    pass
+
+        # 统计用例执行情况并添加到结果统计sheet中
+        logger.info("统计用例执行情况")
+        p1_excel = parser_excel(path=path_save)
+        xlsx = Excel(path_save)
+        xlsx.workbook.sheets.add(name="结果统计", after=xlsx.workbook.sheets[-1])
+        sheet_name2statistics = dict()
+        statistics_list = list()
+        actdomain_send_flag = False
+        for sheet_name, cases in p1_excel.get("sheet_name2cases", dict()).items():
+
+            count_exe = count_unexe = count_pass = count_fail = count_noresult = 0
+
+            # 非活跃的处理
+            for casename, case_list in cases.items():
+                if case_list[0].get("执行状态", 0) not in (0, "0", "", None):
+                    count_exe += 1
+                    cases_result = case_list[0].get("结果", None)
+                    if cases_result == "Pass":
+                        count_pass += 1
+                    elif cases_result == "Failed":
+                        count_fail += 1
+                    else:
+                        count_noresult += 1
+                else:
+                    count_unexe += 1
+
+
+            success_rate = count_pass / count_exe if count_exe else 0.0
+            sheet_name2statistics[sheet_name] = {"count_exe": count_exe, "count_unexe": count_unexe,
+                                                 "count_pass": count_pass, "count_fail": count_fail,
+                                                 "count_noresult": count_noresult, "success_rate": success_rate}
+
+            statistics_list.append(
+                [sheet_name, count_exe, count_pass, count_fail, count_noresult, f"{success_rate:.2%}",
+                 f"{sheet_name2minutes.get(sheet_name, 0)} 分钟"])
+            logger.info(
+                f"sheet:{sheet_name}\tcount_exe:{count_exe}\tcount_pass:{count_pass}\tcount_fail:{count_fail}\tcount_noresult:{count_noresult}\tsuccess_rate:{success_rate:.2%}")
+
+        # 转换为小时和分钟
+        total_minutes = sum(sheet_name2minutes.values())
+        hours = int(total_minutes * 60 // 3600)
+        minutes = int(((total_minutes * 60) % 3600) // 60)
+        logger.info(f"执行总耗时：{hours} 小时 {minutes} 分钟")
+
+        statistics_list = [["sheet", "执行数量", "成功数量", "失败数量", "未执行数量", "成功率",
+                            "执行时间"]] + statistics_list + [
+                              ["", "", "", "", "", "", f"{hours} 小时 {minutes} 分钟"]]
+        xlsx.write_range_values(sheet_index="结果统计", value=statistics_list, row1=0, col1=0)
+
+        xlsx.save(path=path_save)
+        xlsx.close()
+
+    finally:
+
+        # 确保所有资源都被正确关闭
+        if 'xlsx' in locals():
+            try:
+                xlsx.close()
+            except:
+                pass
+
+
 if __name__ == '__main__':
     # 添加命令行参数解析
     parser = argparse.ArgumentParser(description='自动化测试执行脚本')
     parser.add_argument('-f', '--file', type=str, required=False,
                         help='Excel文件路径，例如: 用例_移动.xlsx')
-    parser.add_argument('-s', '--sheet', type=str, required=False,
-                        help='指定要执行的sheet名称，不指定则执行全部')
+    parser.add_argument('-s', '--sheet', type=str, required=False, default="install",
+                        help='指定要执行的sheet名称（默认：install）')
     parser.add_argument('-bat', '--bat', action='store_true', default=False, help='初始化bat文件')
     parser.add_argument('-ps1', '--ps1', action='store_true', default=False, help='初始化ps1文件')
     args = parser.parse_args()
@@ -250,156 +392,5 @@ if __name__ == '__main__':
     elif args.ps1:
         create_ps1()
         sys.exit()
-
-
-    def run(excel_path, sheet=None):
-        # 生成会话ID
-        session_id = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        logger.info(f"会话ID: {session_id}")
-
-        try:
-            p_excel = parser_excel(path=excel_path)
-            excel_base, excel_name = os.path.split(excel_path)
-            excel_name_save = os.path.join("report", f"{excel_name.split('.')[0]}_{gettime(5)}.xlsx")
-            path_save = os.path.join(excel_base, excel_name_save) if excel_base else excel_name_save
-
-            def get_s_excel_path():
-                if os.path.isfile(path_save):
-                    return path_save
-                else:
-                    return excel_path
-
-            # 生成报告
-            if not os.path.isdir("report"):
-                os.mkdir("report")
-            if sheet:
-                tmp_sheets = [sheet]
-            else:
-                # tmp_sheets = list(p_excel.get("sheet_name2heads", dict()).keys())
-                tmp_sheets = list()
-                for sheet_name, cases in p_excel.get("sheet_name2cases", dict()).items():
-                    if [i for i in list(map(lambda x: x[0].get("执行状态", 0), cases.values())) if
-                        i not in (0, "0", "", None)]:
-                        tmp_sheets.append(sheet_name)
-
-                tmp_sheets.remove("设备初始化配置") if "设备初始化配置" in tmp_sheets else None
-                tmp_sheets.remove("配置") if "配置" in tmp_sheets else None
-                tmp_sheets.remove("IP规范") if "IP规范" in tmp_sheets else None
-
-            sheet_name2minutes = dict()
-            for sheet_name in tmp_sheets:
-                # 开始时间
-                start_time = time.time()
-
-                if sheet_name in ["install"]:
-                    install(p_excel=p_excel, sheets=[sheet_name], path=get_s_excel_path(), newpath=path_save, session_id=session_id)
-                else:
-                    logger.error(f"sheet:{sheet_name}需要添加内部直接方法，将直接跳过")
-
-                # 结束时间
-                end_time = time.time()
-                # 计算耗时（单位：秒）
-                duration = end_time - start_time
-                # 转换为小时和分钟
-                hours = int(duration // 3600)
-                minutes = int((duration % 3600) // 60)
-                logger.info(f"sheet:{sheet_name}，执行耗时：{hours} 小时 {minutes} 分钟")
-                cur_minutes = int(duration // 60)
-                sheet_name2minutes[sheet_name] = cur_minutes
-
-            # 删除多余的sheet
-            logger.info(f"整理报告sheet：{path_save}")
-            xlsx = None
-            try:
-                xlsx = Excel(path_save)
-                delete_flag = False
-                for name in [sheet.name for sheet in xlsx.workbook.sheets]:
-                    if name not in tmp_sheets:
-                        try:
-                            xlsx.workbook.sheets[name].delete()
-                            delete_flag = True
-                        except Exception as e:
-                            logger.warning(f"删除 sheet {name} 失败：{e}")
-                if delete_flag:
-                    xlsx.save(path=path_save)
-            except Exception as e:
-                logger.error(f"整理报告 sheet 失败：{e}")
-            finally:
-                if xlsx:
-                    try:
-                        xlsx.close()
-                    except:
-                        pass
-
-            # 统计用例执行情况并添加到结果统计sheet中
-            logger.info("统计用例执行情况")
-            p1_excel = parser_excel(path=path_save)
-            xlsx = Excel(path_save)
-            xlsx.workbook.sheets.add(name="结果统计", after=xlsx.workbook.sheets[-1])
-            sheet_name2statistics = dict()
-            statistics_list = list()
-            actdomain_send_flag = False
-            for sheet_name, cases in p1_excel.get("sheet_name2cases", dict()).items():
-
-                count_exe = count_unexe = count_pass = count_fail = count_noresult = 0
-
-                # 非活跃的处理
-                for casename, case_list in cases.items():
-                    if case_list[0].get("执行状态", 0) not in (0, "0", "", None):
-                        count_exe += 1
-                        cases_result = case_list[0].get("结果", None)
-                        if cases_result == "Pass":
-                            count_pass += 1
-                        elif cases_result == "Failed":
-                            count_fail += 1
-                        else:
-                            count_noresult += 1
-                    else:
-                        count_unexe += 1
-
-
-                success_rate = count_pass / count_exe if count_exe else 0.0
-                sheet_name2statistics[sheet_name] = {"count_exe": count_exe, "count_unexe": count_unexe,
-                                                     "count_pass": count_pass, "count_fail": count_fail,
-                                                     "count_noresult": count_noresult, "success_rate": success_rate}
-
-                statistics_list.append(
-                    [sheet_name, count_exe, count_pass, count_fail, count_noresult, f"{success_rate:.2%}",
-                     f"{sheet_name2minutes.get(sheet_name, 0)} 分钟"])
-                logger.info(
-                    f"sheet:{sheet_name}\tcount_exe:{count_exe}\tcount_pass:{count_pass}\tcount_fail:{count_fail}\tcount_noresult:{count_noresult}\tsuccess_rate:{success_rate:.2%}")
-
-            # 转换为小时和分钟
-            total_minutes = sum(sheet_name2minutes.values())
-            hours = int(total_minutes * 60 // 3600)
-            minutes = int(((total_minutes * 60) % 3600) // 60)
-            logger.info(f"执行总耗时：{hours} 小时 {minutes} 分钟")
-
-            statistics_list = [["sheet", "执行数量", "成功数量", "失败数量", "未执行数量", "成功率",
-                                "执行时间"]] + statistics_list + [
-                                  ["", "", "", "", "", "", f"{hours} 小时 {minutes} 分钟"]]
-            xlsx.write_range_values(sheet_index="结果统计", value=statistics_list, row1=0, col1=0)
-
-            xlsx.save(path=path_save)
-            xlsx.close()
-
-        finally:
-
-            # 确保所有资源都被正确关闭
-            if 'xlsx' in locals():
-                try:
-                    xlsx.close()
-                except:
-                    pass
-
-
-    # if not args.file:
-    #     for file in glob("*.xlsx"):
-    #         run(file)
-    # else:
-    #     run(excel_path=args.file, sheet=args.sheet)
-
-    # # # # run(excel_path="用例_移动131.xlsx", sheet="mirrorvlan")
-    for i in range(1):
-        logger.info(str(i))
-        run(excel_path=r"E:\PycharmProjects\dpiAutoExcel\用例_升级.xlsx", sheet="install")
+    elif args.file:
+        run(excel_path=args.file, sheet=args.sheet)

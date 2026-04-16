@@ -14,8 +14,9 @@ dist/
 *.spec
 *.exe
 
-# Log files
-log/
+# Excel files
+用例_升级*.xlsx
+bat_init.ps1
 report/
 
 # Excel temporary files

@@ -17,12 +17,20 @@ import ntplib as ntplib
 import copy
 import shutil
 import subprocess
-# from mycode.lib.socket_linux import SocketLinux
 import logging
 
 # 日志格式常量
 LOG_FORMAT = '[%(asctime)s] [%(name)s] [%(levelname)s] %(message)s'
 LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+
+
+def get_base_dir():
+    """获取程序基准目录，兼容 PyInstaller exe 和源码运行两种模式"""
+    if getattr(sys, 'frozen', False):
+        # exe 模式：exe 文件所在目录（兼容 onefile 和 onedir）
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(os.path.abspath(__file__))
+
 
 def keep_console_alive(logger, interval=10):
     """
@@ -93,7 +101,7 @@ def setup_logging(log_file_path, logger_name, encoding="utf-8", keep_alive=False
 
 
 
-logger = setup_logging(log_file_path="log/common.log", logger_name="common")
+logger = setup_logging(log_file_path=os.path.join(get_base_dir(), "log", "common.log"), logger_name="common")
 
 def gettime(n=4):
     '''

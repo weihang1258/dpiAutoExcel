@@ -14,7 +14,7 @@ import logging
 
 from comm import result_deal
 from read_write_excel import parser_excel
-from common import gettime, setup_logging
+from common import gettime, setup_logging, get_base_dir
 from dpi import Dpi
 from ftp import FTPclient
 from log_handler import DynamicFileHandler
@@ -313,7 +313,7 @@ def get_target_version(sheet_name: str, category: str, config: dict, mode: str, 
             logger.info(f"✓ 提取完成，共 {len(results)} 个项目")
 
             # 保存到 versions.json
-            json_file = "versions.json"
+            json_file = os.path.join(get_base_dir(), "versions.json")
             save_result = save_versions_to_json(
                 version_data=results,
                 category=category,
@@ -326,7 +326,7 @@ def get_target_version(sheet_name: str, category: str, config: dict, mode: str, 
             rdm_refreshed[category] = True
 
         # 3.2 从 versions.json 读取该分类下所有版本
-        json_file = "versions.json"
+        json_file = os.path.join(get_base_dir(), "versions.json")
         if not os.path.exists(json_file):
             logger.error(f"✗ versions.json 文件不存在")
             raise FileNotFoundError(f"versions.json 文件不存在")
@@ -907,7 +907,7 @@ def dpi_install(
     return result
 
 
-def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", newpath: str = None, versions_json: str = "versions.json", mod_switch_version: str = "idc31", session_id: str = None, log_strategy: str = "by_case") -> None:
+def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", newpath: str = None, versions_json: str = None, mod_switch_version: str = "idc31", session_id: str = None, log_strategy: str = "by_case") -> None:
     """
     基于 Excel 用例执行批量安装/升级测试
 
@@ -959,6 +959,10 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
     if session_id is None:
         session_id = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
         logger.warning(f"session_id 为空，自动生成：{session_id}")
+
+    # 如果 versions_json 为 None，使用 exe 目录下的 versions.json
+    if versions_json is None:
+        versions_json = os.path.join(get_base_dir(), "versions.json")
 
     # 解析 Excel 数据
     sheet_name2cases = p_excel["sheet_name2cases"]
