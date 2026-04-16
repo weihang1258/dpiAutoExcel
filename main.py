@@ -402,4 +402,4 @@ if __name__ == '__main__':
     # # # # # run(excel_path="用例_移动131.xlsx", sheet="mirrorvlan")
     # for i in range(1):
     #     logger.info(str(i))
-    #     run(excel_path=r"E:\PycharmProjects\upgradeTest\用例_升级.xlsx", sheet="install")
+    #     run(excel_path=r"E:\PycharmProjects\dpiAutoExcel\用例_升级.xlsx", sheet="install")
