@@ -293,8 +293,8 @@ def get_target_version(sheet_name: str, category: str, config: dict, mode: str, 
 
             # 获取 RDM 配置
             rdm_base_url = config.get(f"{sheet_name}_base_url", "https://10.128.4.196:2000")
-            rdm_username = config.get(f"{sheet_name}_install_rdm_username", "weihang")
-            rdm_password = config.get(f"{sheet_name}_install_rdm_password", "12345678")
+            rdm_username = config.get(f"{sheet_name}_rdm_username", "weihang")
+            rdm_password = config.get(f"{sheet_name}_rdm_password", "12345678")
 
             # 执行刷新
             from extract_release_path import get_multiple_projects_release_paths, save_versions_to_json
@@ -1024,10 +1024,13 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
 
             # 读取 FTP 相关配置
             rdm_base_url = config.get(f"{sheet_name}_base_url", "https://10.128.4.196:2000")
-            rdm_username = config.get(f"{sheet_name}_install_rdm_username", "weihang")
-            rdm_password = config.get(f"{sheet_name}_install_rdm_password", "12345678")
-            ftp_username = config.get(f"{sheet_name}_install_ftp_username", rdm_username)
-            ftp_password = config.get(f"{sheet_name}_install_ftp_password", rdm_password)
+            rdm_username = config.get(f"{sheet_name}_rdm_username", "weihang")
+            rdm_password = config.get(f"{sheet_name}_rdm_password", "12345678")
+            ftp_username = config.get(f"{sheet_name}_ftp_username", rdm_username)
+            ftp_password = config.get(f"{sheet_name}_ftp_password", rdm_password)
+            if not ftp_username:
+                ftp_username = rdm_username
+                ftp_password = rdm_password
 
             logger.info(f"→ RDM 配置：")
             logger.info(f"  → 平台地址：{rdm_base_url}")

@@ -267,17 +267,28 @@ def _extract_single_project(page: Page, project_name: str, debug: bool, verbose:
 
         # 2. 点击"项目管理"（带重试）
         log_step("正在点击项目管理...")
-        for retry in range(2):
+        clicked = False
+        for retry in range(3):
             try:
-                timeout = 10000 if retry == 0 else 20000  # 第2次加长超时
-                page.click('span[val="项目管理"]', timeout=timeout)
+                timeout = 10000 if retry < 2 else 30000  # 第3次用更长的超时
+                if retry == 0:
+                    # 优先尝试：使用 val 属性选择器
+                    page.locator('span[val="项目管理"]').click(timeout=timeout)
+                elif retry == 1:
+                    # 备选1：使用文本匹配选择器
+                    page.locator('span:has-text("项目管理")').first.click(timeout=timeout)
+                elif retry == 2:
+                    # 备选2：使用 JavaScript 直接触发点击事件
+                    log_step("使用 JavaScript 方式点击项目管理...")
+                    page.evaluate('document.querySelector(\'span[val="项目管理"]\').click()')
                 page.wait_for_load_state("networkidle", timeout=30000)
                 time.sleep(2)
                 log_step("已进入项目管理页面")
+                clicked = True
                 break
             except Exception as e:
-                if retry == 0:
-                    log_step(f"第 1 次点击项目管理失败，准备重试...")
+                if retry < 2:
+                    log_step(f"第 {retry + 1} 次点击项目管理失败，准备重试...")
                     # 可能菜单没展开，尝试点击 home 图标
                     try:
                         page.click('img.rdm-home', timeout=5000)
@@ -871,17 +882,17 @@ if __name__ == "__main__":
     print("示例2: 提取多个项目")
     print("-" * 60)
     projects = [
-        "网络安全执行单元V1.0.6.0"
+        "信息安全执行单元V1.0.7.0"
     ]
 
     results = get_multiple_projects_release_paths(
         projects=projects,
         debug=True,
         verbose=True,
-        headless=True
+        headless=True,username="weihang",password="Qq111222"
     )
 
     print("\n多个项目结果:")
     print(json.dumps(results, ensure_ascii=False, indent=2))
 
-    print(save_versions_to_json(version_data=results, category="网络安全执行单元", json_file="versions.json"))
+    print(save_versions_to_json(version_data=results, category="信息安全执行单元", json_file="versions.json"))
