@@ -11,20 +11,26 @@ venv/
 # Build
 build/
 dist/
+dist_release/
 *.spec
 *.exe
 
 # Excel files
 用例_升级*.xlsx
+用例_移动_1060.xlsx
 bat_init.ps1
+bat_init.bat
 report/
-
-# Excel temporary files
 ~$*.xlsx
 *.tmp
 
+# Runtime directories
+exec_ps1/
+out/
+log/
+temp_files/
+tests/
+
 # Configuration
 versions.json
-
-# Test files
-test_*.py
+versions.json.backup
