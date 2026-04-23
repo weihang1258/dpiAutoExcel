@@ -2,6 +2,26 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## ⚠️ 重要原则：禁止发散生成数据
+
+**在处理代码迁移、数据填充、功能扩展时，必须遵守以下规则：**
+
+1. **只保留原始文件中实际存在的数据** - 如果原始文件没有某个数据，必须先确认来源
+2. **禁止"补充"或"完善"数据** - 遇到缺失数据时，不要自己做假设或推断
+3. **不确定的数据直接删除** - 不要猜测或"合理推断"缺失的内容
+4. **先确认，再行动** - 不清楚的事情必须先问用户或找到确切来源
+5. **迁移时保持原样** - 从旧代码迁移到新代码时，只做结构重组，不做内容扩充
+
+**违规示例（禁止）：**
+- ❌ "原始文件只有 4 个 action2policyfile 条目，我帮他补充完整"
+- ❌ "这个字段看起来像省份代码，我来生成一个映射表"
+- ❌ "这个配置可能需要默认值，我先写一个"
+
+**正确做法：**
+- ✅ 原始有 4 个条目 → 只保留这 4 个
+- ✅ 原始没有某个字段 → 删除或标记为 None
+- ✅ 不确定数据来源 → 询问用户确认
+
 ## Project Overview
 
 dpiAutoExcel is an Excel-driven DPI (Deep Packet Inspection) automated testing framework. Test cases are defined in Excel files, executed against remote DPI devices, and results are written back with color-coded pass/fail status.

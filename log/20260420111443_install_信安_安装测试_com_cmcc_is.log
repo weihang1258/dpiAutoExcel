@@ -1,0 +1,1329 @@
+[2026-04-20 11:14:43] [install] [INFO] ──────────────────────────────────────────────────────────────────────────────
+[2026-04-20 11:14:43] [install] [INFO] 用例：信安_安装测试_com_cmcc_is
+[2026-04-20 11:14:43] [install] [INFO] ──────────────────────────────────────────────────────────────────────────────
+[2026-04-20 11:14:43] [install] [INFO] 日志文件：20260420111443_install_信安_安装测试_com_cmcc_is.log
+[2026-04-20 11:14:43] [install] [INFO] → 分类 信息安全执行单元 首次遇到，从 RDM 刷新 versions.json
+[2026-04-20 11:14:44] [install] [INFO] → 开始从 RDM 平台提取版本信息...
+[2026-04-20 11:17:41] [install] [INFO] ✓ 提取完成，共 2 个项目
+[2026-04-20 11:17:41] [install] [INFO] ✓ versions.json 更新完成
+[2026-04-20 11:17:41] [install] [INFO] ✓ 自动获取最高版本：1.0.6.3-1
+[2026-04-20 11:17:41] [install] [INFO] → dpiversion_d 替换为：1.0.6.3-1
+[2026-04-20 11:17:41] [install] [INFO] → 用例参数：
+[2026-04-20 11:17:41] [install] [INFO]   → 安装类型：全新安装
+[2026-04-20 11:17:41] [install] [INFO]   → 源版本：None，目标版本：1.0.6.3-1
+[2026-04-20 11:17:41] [install] [INFO]   → 源模式：None，目标模式：com_cmcc_is
+[2026-04-20 11:17:41] [install] [INFO]   → 优先使用备份 DPI：False
+[2026-04-20 11:17:41] [install] [INFO]   → 优先使用已有安装包（源）：False
+[2026-04-20 11:17:41] [install] [INFO]   → 优先使用已有安装包（目标）：True
+[2026-04-20 11:17:41] [install] [INFO] 
+[2026-04-20 11:17:41] [install] [INFO] ▶ 执行全新安装
+[2026-04-20 11:17:41] [install] [INFO] → 版本 1.0.6.3-1 模式 com_cmcc_is 映射到分类：信息安全执行单元
+[2026-04-20 11:17:41] [install] [INFO]   → 匹配到程序包：ACT-DPI-EU-1.0.6.3-1_20260413181657.tar.gz
+[2026-04-20 11:17:41] [install] [INFO] ✓ 从 JSON 获取到版本 1.0.6.3-1 的路径
+[2026-04-20 11:17:41] [install] [INFO] 
+[2026-04-20 11:17:41] [install] [INFO] ╔══════════════════════════════════════════════════════════════════════════════╗
+[2026-04-20 11:17:41] [install] [INFO] ║                           第一阶段：验证 FTP 安装包                           ║
+[2026-04-20 11:17:41] [install] [INFO] ╚══════════════════════════════════════════════════════════════════════════════╝
+[2026-04-20 11:17:41] [install] [INFO] → 连接 FTP 服务器：10.128.5.116
+[2026-04-20 11:17:41] [ftp] [INFO] Connecting to FTP server: 10.128.5.116, user: weihang, encode: utf-8
+[2026-04-20 11:17:41] [ftp] [WARNING] FTP_TLS failed, trying FTP instead: [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:1006)
+[2026-04-20 11:17:43] [ftp] [INFO] Connected to FTP server using plain FTP
+[2026-04-20 11:17:43] [install] [INFO] → 验证安装包路径：/02测试/PD250040407_信息安全执行单元V1.0.6.0（信安EU）/V1.0.6.3/ACT-DPI-EU-1.0.6.3-1_20260413181657.tar.gz
+[2026-04-20 11:17:43] [install] [INFO] ✓ 安装包验证通过
+[2026-04-20 11:17:43] [install] [INFO] 
+[2026-04-20 11:17:43] [install] [INFO] ╔══════════════════════════════════════════════════════════════════════════════╗
+[2026-04-20 11:17:43] [install] [INFO] ║                             第二阶段：下载安装包                              ║
+[2026-04-20 11:17:43] [install] [INFO] ╚══════════════════════════════════════════════════════════════════════════════╝
+[2026-04-20 11:17:43] [install] [INFO] → 安装包名称：ACT-DPI-EU-1.0.6.3-1_20260413181657.tar.gz
+[2026-04-20 11:17:43] [install] [INFO] → 远程路径：ftp://10.128.5.116/02测试/PD250040407_信息安全执行单元V1.0.6.0（信安EU）/V1.0.6.3/ACT-DPI-EU-1.0.6.3-1_20260413181657.tar.gz
+[2026-04-20 11:17:43] [install] [INFO] → 本地存放路径：/home/ACT-DPI-EU-1.0.6.3-1_20260413181657.tar.gz
+[2026-04-20 11:17:43] [install] [INFO] → 扫描目标服务器是否存在可用安装包...
+[2026-04-20 11:18:00] [install] [INFO] ✓ 发现可用安装包，跳过下载：/home/ACT-DPI-EU-1.0.6.3-1_20260413181657.tar.gz
+[2026-04-20 11:18:00] [install] [INFO] 
+[2026-04-20 11:18:00] [install] [INFO] ╔══════════════════════════════════════════════════════════════════════════════╗
+[2026-04-20 11:18:00] [install] [INFO] ║                         第三阶段：解压安装包（2层压缩）                         ║
+[2026-04-20 11:18:00] [install] [INFO] ╚══════════════════════════════════════════════════════════════════════════════╝
+[2026-04-20 11:18:00] [install] [INFO] → 检测到版本：v2，解压方式：tar
+[2026-04-20 11:18:00] [install] [INFO] → [1/2] 解压第一层压缩包
+[2026-04-20 11:18:00] [install] [INFO]   ✓ 第一层已解压，跳过：/home/ACT-DPI-EU-1.0.6.3-1_20260413181657
+[2026-04-20 11:18:00] [install] [INFO] → [2/2] 解压第二层压缩包：ALL-BOOT-ALL-ALL-1.0.6.3-1_20260413181657.tar.gz
+[2026-04-20 11:18:00] [install] [INFO]   ✓ 第二层已解压，跳过：/home/ACT-DPI-EU-1.0.6.3-1_20260413181657/ALL-BOOT-ALL-ALL-1.0.6.3-1_20260413181657
+[2026-04-20 11:18:00] [install] [INFO] → 升级脚本路径：/home/ACT-DPI-EU-1.0.6.3-1_20260413181657/ALL-BOOT-ALL-ALL-1.0.6.3-1_20260413181657/upms_install.sh
+[2026-04-20 11:18:00] [install] [INFO] 
+[2026-04-20 11:18:00] [install] [INFO] ╔══════════════════════════════════════════════════════════════════════════════╗
+[2026-04-20 11:18:00] [install] [INFO] ║                            第四阶段：执行全新安装                             ║
+[2026-04-20 11:18:00] [install] [INFO] ╚══════════════════════════════════════════════════════════════════════════════╝
+[2026-04-20 11:18:00] [install] [INFO] → 执行全新安装流程...
+[2026-04-20 11:18:00] [install] [INFO] → 安装脚本路径：/home/ACT-DPI-EU-1.0.6.3-1_20260413181657/ALL-BOOT-ALL-ALL-1.0.6.3-1_20260413181657/install.sh
+[2026-04-20 11:18:00] [install] [INFO] → 开始执行 install.sh 安装脚本...
+[2026-04-20 11:18:00] [dpi] [INFO] dpi程序安装：/home/ACT-DPI-EU-1.0.6.3-1_20260413181657/ALL-BOOT-ALL-ALL-1.0.6.3-1_20260413181657/install.sh
+[2026-04-20 11:18:00] [dpi] [INFO] 备份原dpi程序
+[2026-04-20 11:18:00] [dpi] [INFO] → 获取到 DPI 模式：com_cmcc_is
+[2026-04-20 11:18:00] [dpi] [INFO] 备份目录存在，不备份：/home/dpibak/dpi_bak_1.0.6.3-1_com_cmcc_is
+[2026-04-20 11:18:00] [dpi] [INFO] 备份路径：/home/dpibak/dpi_bak_1.0.6.3-1_com_cmcc_is
+[2026-04-20 11:18:00] [dpi] [INFO] 停止dpi程序
+[2026-04-20 11:18:01] [dpi] [INFO] DPI停止
+[2026-04-20 11:18:03] [dpi] [INFO] 删除原dpi程序
+[2026-04-20 11:18:03] [dpi] [INFO] 执行命令：sudo ./install.sh
+[2026-04-20 11:18:16] [dpi] [INFO] --------------开始校验升级包完整性-----------------
+[OK] boot: 文件存在
+[OK] config: 文件存在
+[OK] platform: 文件存在
+[OK] bin: 文件存在
+[OK] rule: 文件存在
+[OK] engine: 文件存在
+[OK] infer: 文件存在
+--------------升级包完整性校验成功-----------------
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/cpus/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/cpus/haswell
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/cpus/znver3
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/cpus/ivybridge
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/cpus/znver1
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/cpus/armv8.2-a+crypto
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/cpus/znver2
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/cpus/armv8.2-a+crypto+dotprod+fp16fml
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/cpus/icelake-server
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/cpus/armv8.2-a+crypto+dotprod+fp16fml_2011
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/cpus/cascadelake
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/update-grub
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/install_dsms.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/business_binstall.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/userdoc.tar.gz
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/time_sync.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/sh/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/sh/mtune.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/sh/getcpu.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/sh/dpisubcom.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/dpi.conf
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/rsyslog.conf0
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/logrotate_dpi
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/i.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/rsyslog.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/dpimonitor
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/uninstall.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/subinstall.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/test_xstator.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/ver.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/backfile/19-dpi.conf
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/install.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/install1063-1.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/config/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/config/adms/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/config/adms/usrcfg.ini
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/config/adms/upload.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/config/adms/xdr_adms_http.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/config/adms/adms.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/config/adms/xdr_normal_temple_all.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/config/adms/syscfg.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/config/adms/inst.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/config/adms/syscfg_vm.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/config/adms/xdr_ud2_http.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/config/adms/xdr_fraud_temple_all.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/config/adms/xsa_vm.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/config/adms/xdr_template.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/config/adms/xdr_urlhost.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/config/adms/xsa.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/config/adms/xdr_dns_redirect.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/config/industry_ctrl/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/policyserverconf/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/policyserverconf/policyserver.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/common.ini
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/magic.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idfy_tcp.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/webctrl.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/app_proto3.0.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/xdrlog_type.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/self_idfy_dscp.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idfy_asset.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/domain_white.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/url_flt.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/xdrlog_type_610.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/dev_version_info.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idfy_http.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/crack.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/md5_black.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/upload.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/indust_harddecode_prototab.txt_ns
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/xdrlog_type_idc31.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/updown.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/ns/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/ns/indust_idfy_prototab.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/ns/proto_type.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/pcip_ipsegs.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/indust_bak0128.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/content_type.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/eublock_all.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idfy_port.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/dpiupload.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/app_proto_IDC30.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/eublock.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/dpimonitor_delete.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/fz_template.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/transmit.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/house_ipsegs.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/domain_white.tab
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idc30/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idc30/magic.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idc30/idfy_tcp.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idc30/idfy_http.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idc30/crack.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idc30/ns/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idc30/ns/indust_idfy_prototab.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idc30/ns/proto_type.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idc30/idfy_port.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idc30/indust.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idc30/idfy_udp.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idc30/readme.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idc30/app_proto.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idc30/email.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idc30/mime2ext.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idc30/idfy_https.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idc30/proto_type.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idc30/ds/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idc30/ds/indust_idfy_prototab.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idc30/ds/proto_type.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idc30/proto_type.txt_ns
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/warn.tpl
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idfy_ip.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/proto_type3.0.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/flow_filter.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/ctrlqos.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/dpimonitor_delete_lt.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/fsnort.cfg_bak
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/mirror3.0.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/app_proto_zx.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/indust.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/evilpkt_ioc.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/oversea_sftp_info.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idfy_udp.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/md5_white.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/readme.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/eu_filter.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/filter.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/getuserinfo.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/fdir-example.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/xdrlog_type_yun.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/yara.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/indust_idfy_prototab.txt_ns
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/inner_evilpkt_ioc.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/vpn_block_inner.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/http.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/commoninfo.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/indust_idfy_prototab.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/euip.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/flowdirector.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/pcapdump_inner.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/pcapdump.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/fsnort.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/weblib.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/evilfile.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/eublock.kw.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idfy_pkt.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/indust_harddecode_prototab.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/proto_type_wlw.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/semptain_filter.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/asset_info.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/usr.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idfy_dns.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/proto_type_lt5g.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/xdrlog_pc_type.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/app_proto_org.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/dpimonitor_delete_dx.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idfy_dpi_ip.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/app_proto.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/pcapdump_all.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/fsnort.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/email.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/self_app_proto.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/proto_port.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/mirror.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/mime2ext.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/inner_mirr.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/pktdrop.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/self_idfy_http.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/ctrl.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idfy_unicom_eu.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idfy_https.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/idfy_dpidns.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/proto_type.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/proto_type_yd.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/ds/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/ds/indust_idfy_prototab.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/ds/proto_type.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/proto_type.org.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/fcnswitch.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/proto_type.txt_ns
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/indust/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/indust/ns/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/indust/ns/indust_idfy_prototab.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/indust/ns/proto_type.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/indust/indust.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/indust/ds/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/indust/ds/indust_idfy_prototab.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/indust/ds/proto_type.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/self_idfy_feature.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/rule/dpimonitor_delete_yd.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xsaconf/tmp/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/cpsconf/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/cpsconf/rule/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/cpsconf/rule/g_snort.rules
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/cpsconf/conf/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/cpsconf/conf/suricata.yaml
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/cpsconf/conf/classification.config
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/cpsconf/conf/threshold.config
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/cpsconf/conf/reference.config
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/xdr_spec_temple.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/idc31/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/idc31/dxidc31_template_all.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/idc31/ydidc31_all.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/idc31/dxidc31_all.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/idc31/ydidc31_template_all.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/idc31/ltidc31_all.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/idc31/ltidc31_template_all.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/flowdic.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/rtsp.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/bond.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/httpget_whitelist.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/httpget_suffixlist.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/ircs20/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/ircs20/ltircs20_all.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/ircs20/ltircs20_template_all.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/ircs20/ydircs20_all.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/ircs20/dxircs20_all.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/ircs20/ydircs20_template_all.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/ircs20/dxircs20_template_all.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/readme.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/xdr_filter.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/idfy.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/ircs30/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/ircs30/dxidc31_template_all.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/ircs30/ydidc31_all.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/ircs30/dxidc31_all.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/ircs30/ydidc31_template_all.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/ircs30/ltidc31_all.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/ircs30/ltidc31_template_all.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/httpget_blackdomain.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/voip.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/email.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/httpget_blackurl.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/report.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/ftp.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/xdrconf/rule/stator.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/euconf/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/euconf/rule/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/euconf/rule/ydcommoninfo.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/euconf/rule/house_ipsegs.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/euconf/rule/access_log.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/euconf/rule/response_head.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/euconf/rule/eu_active_resource.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/euconf/rule/commoninfo.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/euconf/rule/eu_policy_all.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/euconf/rule/eu_title.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/euconf/rule/eu_policy.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/scripts/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/scripts/Kconfig_tmp
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/scripts/createcfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/scripts/model/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/scripts/mconf
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/scripts/gcc-version.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/scripts/Kconfig.include
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/scripts/Kconfig
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/scripts/ethernet.include
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/oversea_mod_switch.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/cleancache/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/cleancache/cleancache.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/cleancache/install.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/cleancache/cleanlog.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/set_houseid.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/gjfj_mod_switch.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/bad
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/wlwzx_mod_switch.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/xrt_stat_output/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/xrt_stat_output/xrt_stat_output.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/xrt_stat_output/install.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/find_overseaip.py
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/cmcc_mod_switch_pc.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/configureIndustInternetCard.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/cucc_mod_switch.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/ce_check/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/ce_check/configcheck.py
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/dsms_config_action.py
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/610_mod_switch.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/cmcc/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/cmcc/fileload_ini.sh.old
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/cmcc/fileload_ini.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/clean_bzip_txt.py
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/is_value_check.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/cmcc_mod_switch.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/ctcc_mod_switch.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust_mod_switch.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/dns_mod_switch.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/xsajson/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/xsajson/mod.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/xsajson/mem_auto.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/xsajson/mem.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/xsajson/indust.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/xsajson/memlist.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/xsajson/pci.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/xsajson/dsms_config_action.py
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/xsajson/dpicpucfgcheck.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/xsajson/dpicpucfg.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/xsajson/xsajson.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/xsajson/dsmlog_json.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/xsajson/xsa.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/xsajson/idc30.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/xsajson/cpushow.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/REDAME
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/bad.ini
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/dns_analsys/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/dns_analsys/dns_ftp.py
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/dns_analsys/common.ini
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/dns_analsys/dpiupload.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/dns_analsys/clean_dnsrule_bakfile.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/logAuditConf/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/logAuditConf/cucc/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/logAuditConf/cucc/logAudit.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/logAuditConf/cucc/rule/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/logAuditConf/cucc/rule/inotify_white.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/logAuditConf/cucc/rule/inotify.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/logAuditConf/ctcc/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/logAuditConf/ctcc/logAudit.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/logAuditConf/ctcc/rule/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/logAuditConf/ctcc/rule/inotify_white.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/logAuditConf/ctcc/rule/inotify.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/logAuditConf/cmcc/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/logAuditConf/cmcc/logAudit.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/logAuditConf/cmcc/rule/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/logAuditConf/cmcc/rule/inotify_white.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/logAuditConf/cmcc/rule/inotify.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/1G/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/1G/cpuxsa.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/1G/dsms.conf
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/1G/syscfg.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/1G/xsa.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/1G/idc30.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/1G/grub
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/5G/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/5G/cpuxsa.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/5G/dsms.conf
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/5G/syscfg.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/5G/xsa.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/5G/idc30.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/5G/grub
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/200M/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/200M/cpuxsa.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/200M/dsms.conf
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/200M/syscfg.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/200M/xsa.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/200M/idc30.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/modelswitch/indust/200M/grub
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/createmodel.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/cfgcheck/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/cfgcheck/xsa_json_check_old.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/cfgcheck/xsaconf_check/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/cfgcheck/xsaconf_check/xsa_idc31_json.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/cfgcheck/xsaconf_check/xsa_ds_json.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/cfgcheck/xsaconf_check/xsa_is_json.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/cfgcheck/xsaconf_check/xsa_ircs_json.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/cfgcheck/xsaconf_check/xsa_ns_json.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/cfgcheck/xsaconf_check/xsa_new_json.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/cfgcheck/deviceid_set.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/cfgcheck/xsa_json_check.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/cfgcheck/REDAME
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/sh/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/sh/subcom.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/sh/sh/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/sh/sh/createcfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/sh/sh/subcom.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/sh/sh/t_v2.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/sh/sh/getcpu2.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/sh/sh/getcpu.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/sh/sh/t.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/sh/sh/netscan.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/sh/sh/dpdk-devbind.py
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/sh/t_v2.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/sh/getcpu2.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/sh/getcpu.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/sh/t.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/sh/netscan.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/sh/dpdk-devbind.py
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/readme.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/autoset.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/mconf/cfgset.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/malconf/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/malconf/rule/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/malconf/rule/malscan.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/malconf/rule/MsFileTypeBlackList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/malconf/rule/MsFileTypeWhiteList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/magic.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/rs_idc30_temple.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/rs_normal_temple_std.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/rs_normal_temple.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/RsFileTypeBlackList.rule_wlw
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/magic_fors.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/RsFileTypeWhiteList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/dxidc30_rs_template_all.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cucc/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cucc/bns/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cucc/bns/RsFileTypeBlackList_fors.rule.bak
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cucc/bns/RsFileTypeWhiteList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cucc/bns/RsFileTypeBlackList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cucc/bns/ltxdr_evilfile.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cucc/bns/RsFileTypeWhiteList_fors.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cucc/bns/rs_template.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cucc/ds/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cucc/ds/RsFileTypeWhiteList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cucc/ds/RsFileTypeBlackList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cucc/ds/RsFileTypeBlackList_fors.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cucc/ds/RsFileTypeWhiteList_fors.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cucc/ds/rs_template.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cucc/is/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cucc/is/RsFileTypeWhiteList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cucc/is/RsFileTypeBlackList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cucc/is/RsFileTypeBlackList_fors.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cucc/is/RsFileTypeWhiteList_fors.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cucc/is/rs_template.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/RsFileTypeBlackList_ns.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/idc30_ds.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ctcc/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ctcc/ns/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ctcc/ns/RsFileTypeWhiteList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ctcc/ns/RsFileTypeBlackList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ctcc/ns/RsFileTypeBlackList_fors.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ctcc/ns/RsFileTypeWhiteList_fors.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ctcc/ns/rs_template.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ctcc/isbns/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ctcc/isbns/RsFileTypeWhiteList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ctcc/isbns/RsFileTypeBlackList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ctcc/isbns/dxxdr_evilfile.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ctcc/isbns/RsFileTypeBlackList_fors.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ctcc/isbns/RsFileTypeWhiteList_fors.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ctcc/isbns/rs_template.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ctcc/ds/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ctcc/ds/RsFileTypeWhiteList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ctcc/ds/RsFileTypeBlackList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ctcc/ds/RsFileTypeBlackList_fors.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ctcc/ds/RsFileTypeWhiteList_fors.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ctcc/ds/rs_template.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ctcc/is/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/RsFileTypeBlackList_ds.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ltidc30_rs_template_all.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/RsFileTypeBlackList_fors_ns.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ydidc30_rs_template_all.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cmcc/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cmcc/bnsns/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cmcc/bnsns/RsFileTypeBlackList_fors.rule.bak
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cmcc/bnsns/RsFileTypeWhiteList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cmcc/bnsns/RsFileTypeBlackList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cmcc/bnsns/ydxdr_evilfile.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cmcc/bnsns/RsFileTypeWhiteList_fors.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cmcc/bnsns/rs_template.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cmcc/ds/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cmcc/ds/RsFileTypeWhiteList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cmcc/ds/RsFileTypeBlackList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cmcc/ds/RsFileTypeBlackList_fors.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cmcc/ds/RsFileTypeWhiteList_fors.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cmcc/ds/rs_template.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/cmcc/is/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ydidc30_evilfile.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/ltidc30_evilfile.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/dxidc30_evilfile.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/idc30/RsFileTypeBlackList_fors_ds.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/RsFileTypeBlackList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/fastrs.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/evilfile.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/magic.mgc
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/xdr_evilfile.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/rs_template.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/rs_ns.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/FileTypeList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/ydidc30_ns/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/ydidc30_ns/rs_idc30_temple.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/ydidc30_ns/xdr_evilfile.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/ydidc30_ns/rs_template.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/FileTypeList.rule_wlw
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/mime2ext.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/rs_mec_temple.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/rsconf/rule/RsFileTypeWhiteList.rule_wlw
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/p2pPlugin.conf
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/Top304.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/papde_dynamic.conf
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/netrulebase.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/eu_snort.rules
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/av_event.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/changelog.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/getsoftver.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/dga_model/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/dga_model/model.bin
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/dga_model/variables/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/dga_model/variables/variables.index
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/dga_model/variables/variables.data-00000-of-00001
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/dga_model/assets/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/dga_model/keras_metadata.pb
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/dga_model/fingerprint.pb
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/dga_model/saved_model.pb
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/ics_snort.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/dpi_snort.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/eu_snort.var
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/idfy_pkt.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/act_cve_black.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/getpasswd.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/g_snort.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/ns_event.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/papde_static.conf
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/mod_eu.rules
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/pickup.db
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/av_event.txt_wlw
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/fsnortconf/rule/proid_replace.conf
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dpikill.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/malclamconf/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/malclamconf/rule/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/malclamconf/rule/hsdpi.db
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/malclamconf/rule/blackid.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/malclamconf/rule/malclam.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/malclamconf/rule/pickup.db
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dpirun.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/cfg/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/cfg/rs.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/cfg/modall.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/cfg/cps.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/cfg/xdrrs.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/cfg/eu.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/cfg/idc30.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/cfg/xdr.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/cfg/xdm.cfg
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/AMDCpuTopology
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/yara2marex.py
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/exportlog.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/mtune.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/opnuma2.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/timetask.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/clear.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/to.py
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/checkstate.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/check_results.py
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/indust_ana.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/opnuma.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/switch.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/numa.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/dpdk-hugepages.py
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/marex_idquery.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/backstat.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/swapcsv.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/create_yara.py
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/cpu_layout.py
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/rulests.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/igb_uio/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/igb_uio/igb_uio.c
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/igb_uio/compat.h
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/igb_uio/Makefile
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/igb_uio/Kbuild
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/create_ioc.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/url2inner_ioc.py
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/.tabswap.txt
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/dpdk-devbind.py
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/outrule/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/kmod/delete_bakdir.sh
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/rs_idc30_temple.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/rs_normal_temple.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/DsFileTypeWhiteList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/gyhlw/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/gyhlw/gyhlw_indust_ds_template_all.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/gyhlw/gyhlw_indust_ds.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/idc30/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/idc30/dxidc30_rs_template_all.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/idc30/idc30_ds.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/idc30/RsFileTypeBlackList_ds.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/idc30/ltidc30_ds.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/idc30/ltidc30_rs_template_all.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/idc30/ydidc30_rs_template_all.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/idc30/ydidc30_ds.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/idc30/dxidc30_ds.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/hsmatchBlack.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/ds_template.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/hsmatch.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/ds/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/ds/rs_idc30_temple.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/ds/DsFileTypeWhiteList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/ds/ds_template.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/ds/DsFileTypeBlackList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/ds/DsFileTypeList.rule_pc
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/ds/DsFileTypeList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/DsFileTypeBlackList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/DsFileTypeList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/indust/
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/indust/rs_idc30_temple.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/indust/indust_rs_template_all.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/indust/DsFileTypeWhiteList.rule
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/indust/indust_ds.csv
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/indust/indust_40_ds_template_all.json
+ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/dpi/dsconf/rule/indust/DsFileTypeList.rule
+start install
+1.0.6.3-1_20260413181657
+find mtnue haswell
+PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657
+i will install ../ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657.tar.gz
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/xsa
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mypack/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mypack/select/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mypack/select/vsftpd-3.0.3-33.oe2203sp1.x86_64.rpm
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mypack/select/sysstat-12.5.4-5.oe2203sp1.x86_64.rpm
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mypack/select/python3-Cython-0.29.25-1.oe2203sp1.x86_64.rpm
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mypack/select/libtirpc-1.3.2-2.oe2203sp1.x86_64.rpm
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mypack/select/python3-3.9.9-21.oe2203sp1.x86_64.rpm
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mypack/select/lm_sensors-3.6.0-5.oe2203sp1.x86_64.rpm
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mypack/select/python3-pip-21.3.1-2.oe2203sp1.noarch.rpm
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mypack/select/python3-setuptools-59.4.0-4.oe2203sp1.noarch.rpm
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/dlib/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/dlib/libcfbmagic.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/dlib/libiomp5.so
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/dlib/libdgascan.so
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/dpiconfig
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/cmdmsg
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/mpstat
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/uppolicyfile
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/fileload
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/oversea_swap
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/dpi_monitor
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/mconf/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/mconf/scripts/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/mconf/scripts/createcfg
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/mconf/scripts/mconf
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/policyserver
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/logAudit
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/buildtime
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/ltproto_swap
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/kmod/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/kmod/filetype
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/kmod/tabswap
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/kmod/logparser
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/kmod/jwttool
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/kmod/g5tool
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/kmod/cpucfg
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/kmod/clamscan
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mybin/opt/dpi/kmod/IsmsxmlOptFileload
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/libzip.so.5.4
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/libevent-2.1.so.7.0.1
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/libbson-1.0.la
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/libgfortran.so.5.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/libssh2.so.1.0.1
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/libibverbs.so.1.14.43.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/librdkafka.so.1
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/libnl-route-3.so.200.26.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/libopenblas.so.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/libtensorflow_framework.so.2
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/libisal.so.2.0.29
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/libbson-1.0.so.0.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/libbson-1.0.so
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/libjson-c.so.5.2.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/libquadmath.so.0.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/libjansson.so.4.14.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/libopencv_core.so.4.5.2
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/libmlx5.so.1.24.43.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/libopencv_imgcodecs.so.4.5.2
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/libopencv_imgproc.so.4.5.2
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/libsimdjson.so.19.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/myfile/mylib/usr/lib64/libJudy.so.1.0.3
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libxdmtxtlog.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libdserixdr.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libwkudpg5.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libn16g5.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libfokfmsg.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libdemo.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libuploadfile.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libvoltexdr.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libausfn13.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libnrfn27.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libfog4merge.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libcoapxdr.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libpcfn15.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libradius3axdr.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libxdr.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libgitrs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libwkxdr.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libhttprs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libpop3rs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libwksctp.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libxdrstator.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libtlsxdr.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libsmfn11.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libftprs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libpcapdump.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libudmn10.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libwkrs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libpcfn7.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libindust.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libfog5merge.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libctrl.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libxdmcompose.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libxdmsynthetic.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libn26g5.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libradiusxdr.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libs6ag4.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libmqttrs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libamfn8.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libs11g4.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libtcpsegment.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libhttp2.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libsflowrs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libvoipxdr.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libmmsrs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libimaprs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libhttpxdr.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libtransmit.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libbittorrentrs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libmqttxdr.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libfosendxdr.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libwkxdm.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libnssfn22.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libfoxdr.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libxdmuser.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libfog45rand.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libiec104rs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libn1n2g5.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libtlsrs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libs1mmeg4.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libcommong5.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libsmbrs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libn12g5.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libcoaprs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libdatarpt.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libldaprs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/librsfilelog.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libg5learn.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libhttpproto.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libquicxdr.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libnetflow.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libfog45rtmsg.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libeublock.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libproto.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libmailxdr.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libfog5pcapdump.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libmirrorvlan.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libdbsqlrs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libwebctrl.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libflow.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libnfsrs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libfoindust.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libn4g5.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libg5tcpsegment.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libtcpmsg.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libtftprs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libsiprs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libhttp2rs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libbasicinfo.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libsmtprs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libg4lte.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libsnmprs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libxdrtxtlog.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libvpnrs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libftpxdr.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libafprs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libxdmparser.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libmirror.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libafn5.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libg5lte.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libdnsxdr.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libvoltemosxdr.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libhttp2g5.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libnps.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/librtspxdr.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libs58g4.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libmec5g.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libsyslogrs.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libfostator.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libxdmread.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libn14g5.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libfoxdm.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/platform/libnslog.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_kni.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_rib.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_timer.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_pcapng.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_hash.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_kvargs.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_compressdev.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/temple.pro
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_pipeline.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_gpudev.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_security.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_flow_classify.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_cmdline.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_sched.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_ethdev.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/pkgconfig/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/pkgconfig/libdpdk.pc
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/pkgconfig/libdpdk-libs.pc
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_telemetry.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_net.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_table.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_power.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_rcu.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_lpm.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_gso.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_reorder.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_node.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_compress_mlx5.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_common_mlx5.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_bus_fslmc.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_mempool_octeontx2.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_ionic.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_tap.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_mempool_cnxk.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_hinic.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_avp.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_common_qat.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_memif.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_crypto_cnxk.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_event_sw.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_ixgbe.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_pfe.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_baseband_fpga_5gnr_fec.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_atlantic.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_enetfec.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_ring.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_ark.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_vdev_netvsc.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_dpaa.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_common_sfc_efx.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_crypto_virtio.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_vdpa_mlx5.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_compress_zlib.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_vdpa_ifc.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_crypto_bcmfs.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_raw_skeleton.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_raw_cnxk_bphy.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_crypto_dpaa2_sec.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_regex_mlx5.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_baseband_la12xx.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_common_cpt.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_baseband_turbo_sw.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_compress_isal.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_dma_dpaa.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_txgbe.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_mempool_stack.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_baseband_null.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_e1000.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_event_skeleton.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_common_octeontx2.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_ngbe.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_bus_auxiliary.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_octeontx_ep.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_regex_octeontx2.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_sp600.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_thunderx.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_dma_hisilicon.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_crypto_scheduler.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_event_octeontx2.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_i40e.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_ena.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_octeontx2.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_bus_dpaa.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_baseband_fpga_lte_fec.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_dma_ioat.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_event_dsw.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_mempool_bucket.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_raw_dpaa2_qdma.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_vmxnet3.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_dma_idxd.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_crypto_openssl.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_mempool_dpaa2.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_common_dpaax.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_null.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_enic.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_event_dpaa2.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_dma_cnxk.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_event_opdl.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_kni.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_vhost.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_bus_vdev.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_crypto_mlx5.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_common_octeontx.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_compress_octeontx.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_hns3.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_igc.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_vdpa_sfc.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_bus_vmbus.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_iavf.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_crypto_nitrox.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_bus_ifpga.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_netvsc.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_nfp.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_mempool_ring.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_enetc.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_raw_dpaa2_cmdif.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_crypto_caam_jr.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_baseband_acc100.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_mempool_dpaa.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_qede.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_event_dlb2.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_common_cnxk.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_event_octeontx.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_event_dpaa.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_virtio.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_event_cnxk.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_crypto_octeontx.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_bnxt.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_mempool_octeontx.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_raw_ntb.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_softnic.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_fm10k.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_ice.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_bus_pci.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_dpaa2.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_mlx5.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_octeontx.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_axgbe.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_liquidio.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_dma_skeleton.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_crypto_ccp.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_crypto_dpaa_sec.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_af_packet.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_cnxk.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_bnx2x.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_common_iavf.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_crypto_octeontx2.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_bond.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_cxgbe.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_net_failsafe.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/dpdk/pmds-22.0/librte_crypto_null.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/1.sh
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_stack.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_cryptodev.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_mbuf.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_ip_frag.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_eal.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_meter.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_efd.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_distributor.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_pdump.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_gro.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_fib.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_rawdev.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_mempool.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_regexdev.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/ver.txt
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_metrics.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_jobstats.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_latencystats.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_acl.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_bbdev.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_dmadev.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_member.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_ipsec.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_port.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/bin/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/bin/dpdk-l2fwd
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/bin/dpdk-ethtool
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_bpf.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_cfgfile.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_bitratestats.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_eventdev.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_ring.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_pci.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_vhost.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpdk/librte_graph.so.22.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dlib/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dlib/libcfbmagic.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dlib/libiomp5.so
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dlib/libdgascan.so
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/hs/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/hs/libhs.so.5.4.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/hs/libhs_runtime.so.5.4.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/hs/ver.txt
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpi/
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpi/libngap5g.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpi/libsubcommon.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpi/libclamscan.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpi/libmarex.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpi/libmodtab.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpi/libxrt.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/dpi/libdpi.so.1.0.0
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/mtune.txt
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/md5.txt
+ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/install.sh
+BIN-openEuler_22_03-haswell-1.0.6.3-1_20260413181657
+i will install ../ALL-BIN-openEuler_22_03-haswell-1.0.6.3-1_20260413181657.tar.gz
+ALL-BIN-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/
+ALL-BIN-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/
+ALL-BIN-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/bin/
+ALL-BIN-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/bin/libeu.so.1.0.0
+ALL-BIN-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/bin/libfsnort.so.1.0.0
+ALL-BIN-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/bin/libmalicious.so.1.0.0
+ALL-BIN-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/bin/libdga.so.1.0.0
+ALL-BIN-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/bin/libdsmlog.so.1.0.0
+ALL-BIN-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/bin/libcracktunnel.so.1.0.0
+ALL-BIN-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/bin/libmalclam.so.1.0.0
+ALL-BIN-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/bin/libevilblock.so.1.0.0
+ALL-BIN-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/bin/libadms.so.1.0.0
+ALL-BIN-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/bin/libmalscan.so.1.0.0
+ALL-BIN-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/lib/bin/libdnsdetect.so.1.0.0
+ALL-BIN-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/mtune.txt
+ALL-BIN-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/md5.txt
+ALL-BIN-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/install.sh
+find hugepages
+cp -raf dpi/cfg dpi/cpsconf dpi/dpikill.sh dpi/dpirun.sh dpi/dsconf dpi/euconf dpi/fsnortconf dpi/kmod dpi/malclamconf dpi/malconf dpi/mconf dpi/policyserverconf dpi/rsconf dpi/xdrconf dpi/xsaconf /opt/dpi/
+install /etc/init.d/dpimonitor
+install sys pack
+/home/ACT-DPI-EU-1.0.6.3-1_20260413181657/ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657
+2026-04-20 11:18:06
+start run /home/ACT-DPI-EU-1.0.6.3-1_20260413181657/ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/tmp/ALL-PLATFORM-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/install.sh
+cp -raf xsa /opt/dpi/
+prog:10
+cp -raf lib /opt/dpi/
+prog:20
+prog:50
+cp -raf ./opt/dpi/kmod/jwttool /./opt/dpi/kmod/jwttool
+cp -raf ./opt/dpi/kmod/g5tool /./opt/dpi/kmod/g5tool
+cp -raf ./opt/dpi/kmod/tabswap /./opt/dpi/kmod/tabswap
+cp -raf ./opt/dpi/kmod/IsmsxmlOptFileload /./opt/dpi/kmod/IsmsxmlOptFileload
+cp -raf ./opt/dpi/kmod/logparser /./opt/dpi/kmod/logparser
+cp -raf ./opt/dpi/kmod/cpucfg /./opt/dpi/kmod/cpucfg
+cp -raf ./opt/dpi/kmod/clamscan /./opt/dpi/kmod/clamscan
+cp -raf ./opt/dpi/kmod/filetype /./opt/dpi/kmod/filetype
+cp -raf ./opt/dpi/uppolicyfile /./opt/dpi/uppolicyfile
+cp -raf ./opt/dpi/buildtime /./opt/dpi/buildtime
+cp -raf ./opt/dpi/dpiconfig /./opt/dpi/dpiconfig
+cp -raf ./opt/dpi/cmdmsg /./opt/dpi/cmdmsg
+cp -raf ./opt/dpi/policyserver /./opt/dpi/policyserver
+cp -raf ./opt/dpi/fileload /./opt/dpi/fileload
+cp -raf ./opt/dpi/mconf/scripts/createcfg /./opt/dpi/mconf/scripts/createcfg
+cp -raf ./opt/dpi/mconf/scripts/mconf /./opt/dpi/mconf/scripts/mconf
+cp -raf ./opt/dpi/logAudit /./opt/dpi/logAudit
+cp -raf ./opt/dpi/oversea_swap /./opt/dpi/oversea_swap
+cp -raf ./opt/dpi/ltproto_swap /./opt/dpi/ltproto_swap
+cp -raf ./opt/dpi/dpi_monitor /./opt/dpi/dpi_monitor
+cp -raf ./opt/dpi/mpstat /./opt/dpi/mpstat
+prog:60
+cp -raf ./libiomp5.so /opt/dpi/lib/dlib
+cp -raf ./libcfbmagic.so.1.0.0 /opt/dpi/lib/dlib
+cp -raf ./libdgascan.so /opt/dpi/lib/dlib
+prog:70
+prog:80
+install ok
+2026-04-20 11:18:08
+prog:100
+/home/ACT-DPI-EU-1.0.6.3-1_20260413181657/ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657
+2026-04-20 11:18:08
+start run /home/ACT-DPI-EU-1.0.6.3-1_20260413181657/ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657/tmp_bin/ALL-BIN-openEuler_22_03-haswell-1.0.6.3-1_20260413181657/install.sh
+cp -raf lib/bin /opt/dpi/lib/platform
+prog:20
+install ok
+2026-04-20 11:18:08
+prog:100
+/home/ACT-DPI-EU-1.0.6.3-1_20260413181657/ALL-CONFIG-ALL-ALL-1.0.6.3-1_20260413181657
+../NS-RULE-ALL-X86-1.0.6.3-1_20260413181657
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/md5.txt
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/ac_html_4.db
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/hash_sha1.db
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/hash_sha256.db
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/ac_graphics_6.db
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/av_event.txt
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/ac_pe_2.db
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/info.db
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/info.txt
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/ac_java_13.db
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/ac_generic_1.db
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/cdb.db
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/hash_white_sha1.db
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/ac_ascii_8.db
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/hash_white_sha256.db
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/hash_white_md5.db
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/ac_mach_10.db
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/ac_flash_12.db
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/hash_md5.db
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/ac_mail_5.db
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/ac_elf_7.db
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/ac_ole2_3.db
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/hash_pesections.db
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/hash_peimporttables.db
+NS-RULE-ALL-X86-1.0.6.3-1_20260413181657/outrule/ac_pdf_11.db
+install over
+
+[2026-04-20 11:18:16] [install] [INFO] ✓ install.sh 执行完成
+[2026-04-20 11:18:16] [install] [INFO] → 开始执行模式切换
+[2026-04-20 11:18:16] [install] [INFO]   → 目标模式：com_cmcc_is
+[2026-04-20 11:18:16] [install] [INFO]   → PCI 配置：{'pci_list': ['0000:03:00.0']}
+[2026-04-20 11:18:16] [install] [INFO]   → 开关参数：{}
+[2026-04-20 11:18:16] [install] [INFO]   → 超时时间：900s
+[2026-04-20 11:18:16] [install] [INFO]   → 切换参数：('idc31',)
+[2026-04-20 11:18:16] [dpi] [INFO] 切换信息，mode: com_cmcc_is， args: ('idc31',)， modified_param: {}， force: False， pcicfg: {'pci_list': ['0000:03:00.0']} timeout: 900
+[2026-04-20 11:18:16] [dpi] [WARNING] 无法从 /opt/dpi/config/rule/dpiconfig.ok 获取模式：'NoneType' object has no attribute 'group'
+[2026-04-20 11:18:16] [dpi] [INFO] DPI停止
+[2026-04-20 11:18:19] [dpi] [INFO] 切换dpi模式为：com_cmcc_is
+[2026-04-20 11:18:19] [dpi] [INFO] ['sudo', 'bash', 'cmcc_mod_switch.sh', 'is', 'idc31']
+[2026-04-20 11:18:46] [dpi] [INFO] 参数校验通过：
+  运行模式: is
+  规范版本: idc31
+  设备类型: 未指定
+device_mode: is
+update /opt/dpi/xdrconf/rule/ydidc30.csv
+update /opt/dpi/xdrconf/rule/xdr_template.json
+没有找到名为fileload的进程。
+/opt/dpi/xsaconf/rule/idc30/目录下规则已更新至xsaconf/rule
+netcard_count=1    ## 网卡数量
+netcard_interface_count=1  ## 网卡口数量
+numa_count=2   ## NUMA数量
+cpu_count=2    ## cpu数量
+core_count=12   ## 单路CPU核数
+thread_count=48   ## 总线程数
+gobal_mem_channels=4   ## 内存通道
+netcard_pci=0000:03:00.0   ## 使用网口pci列表
+1 1 2 2 12 48 12 36 47 24,35 -1 -1 -1 -1 -1 -1 1-2,25-26|13-14,37-38 3-9,27-34|15-21,39-46 10-11|22-23 8 30 4
+device config: nc1_ncitf1_numa2_cpu2
+创建syscfg.json ok
+创建cpuxsa.json ok
+48
+[1;37m0(0)[0m			[1;34m12(XSA)[0m			[1;34m24(UP)[0m			[1;34m36(MR)[0m
+[1;36m1(io)[0m			[1;36m13(io)[0m			[1;36m25(io)[0m			[1;36m37(io)[0m
+[1;36m2(io)[0m			[1;36m14(io)[0m			[1;36m26(io)[0m			[1;36m38(io)[0m
+[1;32m3(wk)[0m			[1;32m15(wk)[0m			[1;32m27(wk)[0m			[1;32m39(wk)[0m
+[1;32m4(wk)[0m			[1;32m16(wk)[0m			[1;32m28(wk)[0m			[1;32m40(wk)[0m
+[1;32m5(wk)[0m			[1;32m17(wk)[0m			[1;32m29(wk)[0m			[1;32m41(wk)[0m
+[1;32m6(wk)[0m			[1;32m18(wk)[0m			[1;32m30(wk)[0m			[1;32m42(wk)[0m
+[1;32m7(wk)[0m			[1;32m19(wk)[0m			[1;32m31(wk)[0m			[1;32m43(wk)[0m
+[1;32m8(wk)[0m			[1;32m20(wk)[0m			[1;32m32(wk)[0m			[1;32m44(wk)[0m
+[1;32m9(wk)[0m			[1;32m21(wk)[0m			[1;32m33(wk)[0m			[1;32m45(wk)[0m
+[1;33m10(fo)[0m			[1;33m22(fo)[0m			[1;32m34(wk)[0m			[1;32m46(wk)[0m
+[1;33m11(fo)[0m			[1;33m23(fo)[0m			[1;34m35(UP)[0m			[1;34m47(PD)[0m
+
+
+update /opt/dpi/syscfg.json
+update /opt/dpi/idc30.cfg
+update /opt/dpi/xsaconf/xsa.json
+update /opt/dpi/xsaconf/cpuxsa.json
+[1m[devinfo]	[dev_provider]	[RZX][0m	[[1;33mACT[0m]	[[1;31m已调整[0m]
+[1m[devinfo]	[dev_id]	[1][0m	[[1;33m000052[0m]	[[1;31m已调整[0m]
+[1m[devinfo]	[dev_type]	[SURF-DPI-EU][0m	[[1;33mSURF-DPI-AU[0m]	[[1;31m已调整[0m]
+[1m[devinfo]	[dev_soft_ver]	[3.1][0m	[[1;33m1[0m]	[[1;31m已调整[0m]
+[1m[devinfo]	[manufacture_id]	[10][0m	[[1;33m13[0m]	[[1;31m已调整[0m]
+[1m[devinfo]	[device_serial_no]	[act][0m	[[1;33m000052[0m]	[[1;31m已调整[0m]
+[1m[devinfo]	[total_capability]	[40][0m	[[1;33m0[0m]	[[1;31m已调整[0m]
+[1m[dpi]	[syslog]	[1][0m	[[1;33m0[0m]	[[1;31m已调整[0m]
+[1m[evilblock]	[apt_enable]	[1][0m	[[1;33m0[0m]	[[1;31m已调整[0m]
+[1m[evilblock]	[evilblock_idc31_enable]	[1][0m	[[1;33m0[0m]	[[1;31m已调整[0m]
+[1m[evilblock]	[ns_event_mem]	[30][0m	[[1;33m10[0m]	[[1;31m已调整[0m]
+[1m[adms]	[idc_flag]	[1][0m	[[1;33m0[0m]	[[1;31m已调整[0m]
+[1m[adms]	[storage_timeout_s]	[120][0m	[[1;33m30[0m]	[[1;31m已调整[0m]
+[1m[proto]	[ctrl_data_ftp_ip]	[0][0m	[[1;33m1[0m]	[[1;31m已调整[0m]
+[1m[mirrorvlan]	[cachePoolKSize]	[500][0m	[[1;33m40[0m]	[[1;31m已调整[0m]
+[1m[mirrorvlan]	[proto_match_enable]	[1][0m	[[1;33m0[0m]	[[1;31m已调整[0m]
+[1m[uploadfile]	[ftp_enable]	[0][0m	[[1;33m1[0m]	[[1;31m已调整[0m]
+[1m[uploadfile]	[sftp_enable]	[0][0m	[[1;33m1[0m]	[[1;31m已调整[0m]
+[1m[uploadfile]	[check_enable]	[4][0m	[[1;33m0[0m]	[[1;31m已调整[0m]
+[1m[uploadfile]	[commonini_enable]	[1][0m	[[1;33m0[0m]	[[1;31m已调整[0m]
+[1m[uploadfile]	[log_enable]	[0][0m	[[1;33m1[0m]	[[1;31m已调整[0m]
+[1m[uploadfile]	[cleandir]	[/dev/shm/sess][0m	[[1;33m\/dev\/shm\/sess[0m]	[[1;31m已调整[0m]
+[1m[malicious]	[vflag_enable]	[0][0m	[[1;33m1[0m]	[[1;31m已调整[0m]
+[1m[malicious]	[lt_s_enable]	[0][0m	[[1;33m1[0m]	[[1;31m已调整[0m]
+[1m[malicious]	[ns_event_mem]	[30][0m	[[1;33m10[0m]	[[1;31m已调整[0m]
+[1m[malscan]	[malscan_idc31_enable]	[1][0m	[[1;33m0[0m]	[[1;31m已调整[0m]
+[1m[eu]	[oversea_dnsxdr_enable]	[0][0m	[[1;33m1[0m]	[[1;31m已调整[0m]
+[1m[eu]	[vpn_block_enable]	[0][0m	[[1;33m1[0m]	[[1;31m已调整[0m]
+[1m[eu]	[oversea_dump_enable]	[0][0m	[[1;33m1[0m]	[[1;31m已调整[0m]
+[1m[eu]	[key2url_path]	[/dev/shm/eu/key2url][0m	[[1;33m\/dev\/shm\/eu\/key2url[0m]	[[1;31m已调整[0m]
+[1m[eu]	[apptype_tab]	[0,1,5,15,16,11,14,26,2,3,4,6,7,8,9,10,19,25,20,18,23,24,12,13,17,21,22,27,28][0m	[[1;33m0-1,5,15-16,11,14,26,2-4,6-10,19,25,20,18,23-24,12-13,17,21-22,27-28[0m]	[[1;31m已调整[0m]
+[1m[eu]	[http_filter_enable]	[3][0m	[[1;33m0[0m]	[[1;31m已调整[0m]
+[1m[httprs]	[http_short_url_posi]	[6][0m	[[1;33m2[0m]	[[1;31m已调整[0m]
+[1m[dnsxdr]	[compool_blk_posi]	[1][0m	[[1;33m6[0m]	[[1;31m已调整[0m]
+[1m[dnsxdr]	[ans_cont_enable]	[0][0m	[[1;33m1[0m]	[[1;31m已调整[0m]
+[1m[dnsxdr]	[dnsxdr_jxlog_enable]	[0][0m	[[1;33m1[0m]	[[1;31m已调整[0m]
+[1m[foxdr]	[apptype_tab]	[0,1,5,15,16,11,14,26,2,3,4,6,7,8,9,10,19,25,20,18,23,24,12,13,17,21,22,27,28][0m	[[1;33m0-1,5,15-16,11,14,26,2-4,6-10,19,25,20,18,23-24,12-13,17,21-22,27-28[0m]	[[1;31m已调整[0m]
+[1m[foxdr]	[foxdr_idc31_enable]	[1][0m	[[1;33m0[0m]	[[1;31m已调整[0m]
+[1m[pcapdump]	[version]	[49][0m	[[1;33m1[0m]	[[1;31m已调整[0m]
+[1m[pcapdump]	[manufacturer_Name]	[01][0m	[[1;33mRZX[0m]	[[1;31m已调整[0m]
+[1m[pcapdump]	[equipment_number]	[001][0m	[[1;33m000052[0m]	[[1;31m已调整[0m]
+[1m[pcapdump]	[one_flow_one_logid]	[0][0m	[[1;33m1[0m]	[[1;31m已调整[0m]
+[1m[pcapdump]	[idc31_enable]	[1][0m	[[1;33m0[0m]	[[1;31m已调整[0m]
+[1m[pcapdump]	[pcapdump_savesize]	[252][0m	[[1;33m24[0m]	[[1;31m已调整[0m]
+[1m[fostator]	[euvisit_onlyhttp]	[1][0m	[[1;33m0[0m]	[[1;31m已调整[0m]
+[1m[fostator]	[dns_enable]	[0][0m	[[1;33m1[0m]	[[1;31m已调整[0m]
+[1m[tcpmsg]	[systemmsg_version]	[1062][0m	[[1;33m1052[0m]	[[1;31m已调整[0m]
+[1m[xdrtxtlog]	[dedup_switch]	[1][0m	[[1;33m0[0m]	[[1;31m已调整[0m]
+[1m[xdrtxtlog]	[commonini_enable]	[1][0m	[[1;33m0[0m]	[[1;31m已调整[0m]
+未配置eublock port,请手动配置,配置此文件/opt/dpi/mconf/modelswitch/xsajson/pci.cfg
+[xdrtxtlog] [open]
+[tcpmsg] [open]
+[uploadfile] [open]
+[xdr] [open]
+[httpproto] [open]
+[proto] [open]
+[wkxdr] [open]
+[httpxdr] [open]
+[mirrorvlan] [open]
+[pcapdump] [open]
+[eu] [open]
+[eublock] [open]
+[tcpsegment] [open]
+[fostator] [open]
+[dnsxdr] [open]
+[adms] [open]
+已针对系统/etc/ssh/ssh_config配置文件修改UserKnownHostsFile字段值
+已针对系统/etc/ssh/ssh_config配置文件的修改StrictHostKeyChecking字段值
+
+[2026-04-20 11:18:46] [dpi] [INFO] 等待DPI启动
+[2026-04-20 11:19:33] [dpi] [INFO] 对比切换mod_switch.sh中开关
+[2026-04-20 11:19:33] [dpi] [INFO] 对比版本号
+[2026-04-20 11:19:33] [dpi] [INFO] 切换后预期版本准确：期望1.0.6.3-1-->实际1.0.6.3-1
+[2026-04-20 11:19:33] [dpi] [INFO] 对比dpimode
+[2026-04-20 11:19:33] [dpi] [INFO] 切换后预期版本准确：期望com_cmcc_is-->实际com_cmcc_is
+[2026-04-20 11:19:33] [install] [INFO] ✓ 模式切换完成，结果：{'result': True, 'mark': []}
+[2026-04-20 11:19:33] [install] [INFO] 
+[2026-04-20 11:19:33] [install] [INFO] ╔══════════════════════════════════════════════════════════════════════════════╗
+[2026-04-20 11:19:33] [install] [INFO] ║                            第五阶段：输出最终状态                             ║
+[2026-04-20 11:19:33] [install] [INFO] ╚══════════════════════════════════════════════════════════════════════════════╝
+[2026-04-20 11:19:33] [install] [INFO] → PCI 信息：{'pci_list': ['0000:03:00.0']}
+[2026-04-20 11:19:33] [install] [INFO] → DPI 模式：com_cmcc_is
+[2026-04-20 11:19:33] [install] [INFO] → DPI 版本：1.0.6.3-1
+[2026-04-20 11:19:33] [install] [INFO] 
+[2026-04-20 11:19:33] [ftp] [INFO] FTP connection closed.
+[2026-04-20 11:19:33] [result] [INFO] ['用例_升级.xlsx', 'install', [], 1, {'执行状态': 0, '用例名': 1, '用例说明': 2, '安装类型': 3, 'dpiversion_s': 4, '优先使用存在安装包_s': 5, '优先使用备份dpi_s': 6, 'dpimode_s': 7, 'switch_param_s': 8, 'dpiversion_d': 9, '优先使用存在安装包_d': 10, 'dpimode_d': 11, 'switch_param_d': 12, 'xsa.json预修改': 13, '🚀 执行Sheet': 14, '🚀 执行Book': 15, '结果': 16, '备注': 17}, [], False, True, 'report\\用例_升级_20260420111443.xlsx']
+[2026-04-20 11:19:33] [result] [INFO] 结果准备写入excel
+[2026-04-20 11:19:41] [result] [INFO] 结果去重
+[2026-04-20 11:19:41] [result] [INFO] 结果按行优化
+[2026-04-20 11:19:41] [result] [INFO] 非标红数据写入excel
+[2026-04-20 11:19:41] [result] [INFO] 标红数据写入excel
+[2026-04-20 11:19:41] [result] [INFO] xlsx保存路径：report\用例_升级_20260420111443.xlsx
+[2026-04-20 11:19:41] [install] [INFO] ✓ 全新安装完成
+[2026-04-20 11:19:41] [install] [INFO] ✓ 用例执行完成：信安_安装测试_com_cmcc_is
+[2026-04-20 11:19:41] [result] [INFO] ['用例_升级.xlsx', 'install', [(1, 17, None, None), (1, 16, 'Pass', (0, 255, 0))], 1, {'执行状态': 0, '用例名': 1, '用例说明': 2, '安装类型': 3, 'dpiversion_s': 4, '优先使用存在安装包_s': 5, '优先使用备份dpi_s': 6, 'dpimode_s': 7, 'switch_param_s': 8, 'dpiversion_d': 9, '优先使用存在安装包_d': 10, 'dpimode_d': 11, 'switch_param_d': 12, 'xsa.json预修改': 13, '🚀 执行Sheet': 14, '🚀 执行Book': 15, '结果': 16, '备注': 17}, [], False, True, 'report\\用例_升级_20260420111443.xlsx']
+[2026-04-20 11:19:41] [result] [INFO] 结果准备写入excel
+[2026-04-20 11:19:46] [result] [INFO] 结果去重
+[2026-04-20 11:19:46] [result] [INFO] 结果按行优化
+[2026-04-20 11:19:46] [result] [INFO] 非标红数据写入excel
+[2026-04-20 11:19:46] [result] [INFO] 标红数据写入excel
+[2026-04-20 11:19:46] [result] [INFO] xlsx保存路径：report\用例_升级_20260420111443.xlsx
+[2026-04-20 11:19:46] [install] [INFO] 关闭 Sheet install 的日志处理器

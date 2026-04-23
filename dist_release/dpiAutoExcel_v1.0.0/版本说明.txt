@@ -1,0 +1,11 @@
+版本说明 - v1.0.0
+==================
+
+本次发布：
+- 全新打包发布，脱离 Python 环境运行
+- 使用 PyInstaller onefile 单文件模式
+- 依赖系统 Chrome/Edge 浏览器
+- 内置版本缓存管理（versions.json）
+
+系统要求：Windows 10 及以上
+前置软件：Chrome 或 Edge 浏览器
