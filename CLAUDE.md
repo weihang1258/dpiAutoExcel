@@ -12,16 +12,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 4. **先确认，再行动** - 不清楚的事情必须先问用户或找到确切来源
 5. **迁移时保持原样** - 从旧代码迁移到新代码时，只做结构重组，不做内容扩充
 
-**违规示例（禁止）：**
-- ❌ "原始文件只有 4 个 action2policyfile 条目，我帮他补充完整"
-- ❌ "这个字段看起来像省份代码，我来生成一个映射表"
-- ❌ "这个配置可能需要默认值，我先写一个"
-
-**正确做法：**
-- ✅ 原始有 4 个条目 → 只保留这 4 个
-- ✅ 原始没有某个字段 → 删除或标记为 None
-- ✅ 不确定数据来源 → 询问用户确认
-
 ## Project Overview
 
 dpiAutoExcel is an Excel-driven DPI (Deep Packet Inspection) automated testing framework. Test cases are defined in Excel files, executed against remote DPI devices, and results are written back with color-coded pass/fail status.
@@ -48,27 +38,39 @@ pip install -r requirements.txt
 
 ## Architecture
 
+### Directory Structure
+```
+business/         # 主业务逻辑 (install, pcapdump, eu_policy, log_*, mirrorvlan, bzip)
+core/             # 核心测试逻辑 (excel_reader, result, comparer, pcap, tcpdump)
+data/             # 数据比对器 (xml_comparer, dict_comparer)
+device/           # 设备通信层 (dpi, socket_linux, ssh, tcpdump, hengwei, webvisit)
+io_handler/       # 文件 I/O 处理 (excel, ftp_client)
+monitor/           # 状态监控 (dpistat, tcpdump)
+protocol/          # 协议处理 (pcap_analyzer)
+utils/             # 工具模块 (common, dpi_helper, log_handler, rdm_extractor 等)
+```
+
 ### Two Communication Modes
 The framework supports two ways to communicate with remote DPI devices:
-- **Socket** (`socket_linux.py`): Binary protocol with length-prefixed JSON + gzip compression
-- **SSH** (`ssh.py`): Standard SSH/SFTP for command execution and file transfer
+- **Socket** (`device/socket_linux.py`): Binary protocol with length-prefixed JSON + gzip compression
+- **SSH** (`device/ssh.py`): Standard SSH/SFTP for command execution and file transfer
 
 ### Class Hierarchy
 ```
-SocketLinux  (socket_linux.py - base class)
-├── Dpi       (dpi.py - DPI device control)
-└── CheckDpiStat  (dpistat.py - stat file parsing)
+SocketLinux  (device/socket_linux.py - base class)
+├── Dpi       (device/dpi.py - DPI device control)
+└── CheckDpiStat  (monitor/dpistat.py - stat file parsing)
 
-SSHManager/VerificationSsh  (ssh.py - SSH operations)
+SSHManager/VerificationSsh  (device/ssh.py - SSH operations)
 ```
 
 ### Data Flow
 ```
-Excel Test Cases → read_write_excel → comm.py → result_deal → Excel Report
-                                    ↓
-                             SocketLinux/SSH
-                                    ↓
-                           Remote DPI Device
+Excel Test Cases → core/excel_reader → business/* → core/result → Excel Report
+                                         ↓
+                                  device/socket_linux or device/ssh
+                                         ↓
+                                  Remote DPI Device
 ```
 
 ### Key Patterns
@@ -81,15 +83,22 @@ Excel Test Cases → read_write_excel → comm.py → result_deal → Excel Repo
 
 | Module | Purpose |
 |--------|---------|
-| `excel.py` | Excel wrapper with xlwings (read/write with color support) |
-| `comm.py` | Test execution: `result_deal()`, `compare_exp()`, `pcap_send()` |
-| `dpi.py` | DPI lifecycle: start/stop, upgrade, mode-switch, backup |
-| `dpiinstall.py` | Installation module called by main.py for sheet "install" |
-| `dpistat.py` | Parses `/dev/shm/xsa/*.stat` files for health checks |
-| `socket_linux.py` | Binary socket client for remote agent communication |
-| `read_write_excel.py` | `parser_excel()` returns dict with config, cases, headers |
-| `xml_comparer.py` / `dict_comparer.py` | Compare expected vs actual with ignore/time/length fields |
-| `versions.json` | Maps DPI product types to version numbers and FTP URLs |
+| `business/install.py` | DPI 安装/升级流程 |
+| `business/pcapdump.py` | PCAP 抓包测试 |
+| `business/eu_policy.py` | EU 策略测试 |
+| `core/excel_reader.py` | `parser_excel()` 解析 Excel 返回 dict |
+| `core/result.py` | `result_deal()` 处理测试结果 |
+| `core/comparer.py` | 期望值与实际值比对 |
+| `device/dpi.py` | DPI 生命周期管理 |
+| `device/socket_linux.py` | 二进制 Socket 通信客户端 |
+| `device/ssh.py` | SSH/SFTP 客户端 |
+| `io_handler/excel.py` | Excel 封装 (xlwings) |
+| `io_handler/ftp_client.py` | FTP 客户端 |
+| `monitor/dpistat.py` | 解析 `/dev/shm/xsa/*.stat` 文件 |
+| `data/xml_comparer.py` | XML 格式比对 |
+| `data/dict_comparer.py` | 字典格式比对 |
+| `utils/rdm_extractor.py` | RDM 平台发布路径提取 |
+| `utils/common.py` | 通用工具函数 |
 
 ## Development Notes
 
