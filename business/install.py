@@ -297,7 +297,7 @@ def get_target_version(sheet_name: str, category: str, config: dict, mode: str, 
             rdm_password = config.get(f"{sheet_name}_rdm_password", "12345678")
 
             # 执行刷新
-            from extract_release_path import get_multiple_projects_release_paths, save_versions_to_json
+            from utils.rdm_extractor import get_multiple_projects_release_paths, save_versions_to_json
 
             logger.info(f"→ 开始从 RDM 平台提取版本信息...")
             results = get_multiple_projects_release_paths(
@@ -525,7 +525,7 @@ def auto_update_json_and_get_path(
         logger.info(f"→ 目标项目列表：{project_list}")
 
     # 1. 执行多项目提取
-    from extract_release_path import get_multiple_projects_release_paths, save_versions_to_json
+    from utils.rdm_extractor import get_multiple_projects_release_paths, save_versions_to_json
 
     logger.info("→ 开始执行多项目提取...")
     results = get_multiple_projects_release_paths(
