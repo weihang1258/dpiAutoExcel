@@ -12,9 +12,20 @@ from device.socket_linux import SocketLinux
 
 
 class Webvisit(SocketLinux):
-    """网站访问/封堵类"""
+    """网站访问/封堵类。
+
+    继承自 SocketLinux，提供模拟网站访问和封堵测试功能。
+
+    Attributes:
+        client: Socket 客户端连接
+    """
 
     def __init__(self, client: tuple):
+        """初始化 Webvisit 对象。
+
+        Args:
+            client: Socket 客户端元组 (host, port)
+        """
         super().__init__(client)
 
     def boce(self, url, count=1, interval=0, thread_count=1, timeout=3, mode="封堵", bufsize=1024):

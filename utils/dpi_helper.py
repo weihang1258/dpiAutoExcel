@@ -7,15 +7,24 @@
 
 
 def dpi_init(dpi, xsa_json=None, mod_cfg=None, xdr_template_pattern=None):
-    """
-    初始化 DPI 设备配置
+    """初始化 DPI 设备配置。
 
-    :param dpi: Dpi对象
-    :param xsa_json: xsa.json配置修改字典，格式如 {"devinfo.province_id": 117, "httpxdr.compool_blk_posi": 2}
-                     键使用点号分隔表示嵌套路径
-    :param mod_cfg: 模式配置字典
-    :param xdr_template_pattern: XDR模板模式字典
-    :return: True
+    Args:
+        dpi: Dpi 对象，用于与 DPI 设备通信
+        xsa_json (dict, optional): xsa.json 配置修改字典，格式如
+            {"devinfo.province_id": 117, "httpxdr.compool_blk_posi": 2}
+            键使用点号分隔表示嵌套路径
+        mod_cfg (dict, optional): 模式配置字典
+        xdr_template_pattern (dict, optional): XDR模板模式字典
+
+    Returns:
+        bool: 初始化是否成功
+
+    Examples:
+        >>> from device.dpi import Dpi
+        >>> dpi = Dpi(host="172.31.140.81", port=9000)
+        >>> dpi_init(dpi, xsa_json={"devinfo.province_id": 117})
+        True
     """
     modify_flag = False
 

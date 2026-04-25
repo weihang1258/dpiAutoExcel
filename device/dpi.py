@@ -24,17 +24,34 @@ logger = setup_logging(log_file_path="log/dpi.log", logger_name="dpi")
 
 
 class Dpi(SocketLinux):
+    """DPI (Deep Packet Inspection) 设备控制类。
+
+    继承自 SocketLinux，提供 DPI 设备的生命周期管理、策略配置等功能。
+
+    Attributes:
+        adms_idc_debug2dict: ADMS IDC 调试信息字典
+        dpi_path (str): DPI 安装路径，默认 "/opt/dpi"
+    """
+
     def __init__(self, client):
+        """初始化 DPI 客户端。
+
+        Args:
+            client: socket.socket 对象或 (host, port) 元组
+        """
         super().__init__(client)
         self.adms_idc_debug2dict = None
         self.dpi_path = "/opt/dpi"
 
     def modify_modcfg(self, path="/opt/dpi/idc30_is.cfg", **module2value):
-        """
-        修改idc30_is.cfg
-        :param path:
-        :param module2value: 参数配置，使用示例如：copy_modcfg(ssh_dpi, httpproto=1, proto=1)
-        :return:
+        """修改 DPI 配置文件 (idc30_is.cfg)。
+
+        Args:
+            path: 配置文件路径，默认 "/opt/dpi/idc30_is.cfg"
+            **module2value: 模块配置参数，如 httpproto=1, proto=1
+
+        Returns:
+            None
         """
         # 提取创建目录
         dir = path.rsplit("/", 1)[0]
@@ -53,7 +70,16 @@ class Dpi(SocketLinux):
             self.putfo(fl=fl, remotepath=path, overwrite=True)
 
     def wait_alive(self, timeout=60):
-        """判断DPI是否存活"""
+        """判断 DPI 是否存活。
+
+        通过检查 stat 文件的 MD5 值变化来判断 DPI 进程是否正常运行。
+
+        Args:
+            timeout: 超时时间（秒），默认 60
+
+        Returns:
+            bool: True 表示存活，False 表示超时
+        """
         path_stat = "/dev/shm/xsa/time_main_io.stat"
         self.rm(path_stat)
         cmd = "md5sum %s|awk '{print $1}'" % path_stat
@@ -69,7 +95,14 @@ class Dpi(SocketLinux):
         return False
 
     def stop(self, timeout=300):
-        """停DPI"""
+        """停止 DPI 进程。
+
+        Args:
+            timeout: 超时时间（秒），默认 300
+
+        Returns:
+            bool: True 表示成功停止，False 表示失败
+        """
         self.cmd(args="sudo sh dpikill.sh", cwd="/opt/dpi")
         logger.info("DPI停止")
         response = wait_until(func=self.cmd, expect_value="0\n", timeout=timeout, args="ps -ef|grep '/opt/dpi/xsa$' -c")
@@ -80,7 +113,14 @@ class Dpi(SocketLinux):
             return False
 
     def start(self, timeout=600):
-        """启动DPI"""
+        """启动 DPI 进程。
+
+        Args:
+            timeout: 超时时间（秒），默认 600
+
+        Returns:
+            bool: True 表示启动成功，False 表示失败
+        """
         if self.cmd("ps -ef|grep '/opt/dpi/xsa$' -c") == "1\n":
             # self.cmd(args="sudo sh dpikill.sh", cwd="/opt/dpi")
             return self.wait_alive(timeout)
@@ -94,18 +134,25 @@ class Dpi(SocketLinux):
             return False
 
     def restart(self, timeout=600):
-        """启动DPI"""
+        """重启 DPI 进程。
+
+        Args:
+            timeout: 超时时间（秒），默认 600
+
+        Returns:
+            bool: True 表示重启成功，False 表示失败
+        """
         if self.stop(timeout=timeout):
             return self.start(timeout=timeout)
         else:
             return False
 
     def dpi_monitor(self, op):
-        '''
-        dpi_monitor程序启停操作
-        :param op: start，stop
-        :return:
-        '''
+        """DPI Monitor 程序启停操作。
+
+        Args:
+            op: 操作类型，"start" 或 "stop"
+        """
         if op == "start" and int(self.cmd(args="ps -ef|grep dpi_monitor|grep -v grep|wc -l")) == 0:
             cmd = "/opt/dpi/dpi_monitor -t 5"
         elif op == "stop":
@@ -115,11 +162,11 @@ class Dpi(SocketLinux):
         self.cmd(args=cmd, wait=False)
 
     def policyserver(self, op):
-        '''
-        policyserver程序启停操作
-        :param op: start，stop
-        :return:
-        '''
+        """PolicyServer 程序启停操作。
+
+        Args:
+            op: 操作类型，"start" 或 "stop"
+        """
         if op == "start" and int(self.cmd(args="ps -ef|grep policyserver|grep -v grep|wc -l")) == 0:
             cmd = "sudo /opt/dpi/policyserver &"
         elif op == "stop":
@@ -141,7 +188,16 @@ class Dpi(SocketLinux):
         return res
 
     def clean_stat(self, timeout=60):
-        """清空dpi状态"""
+        """清空 DPI 状态。
+
+        执行清空命令并等待流超时，确保 DPI 状态被重置。
+
+        Args:
+            timeout: 等待超时时间（秒），默认 60
+
+        Returns:
+            bool: True 表示成功，抛出异常表示失败
+        """
         logger.info("清空dpi状态:/opt/dpi/cmdmsg xsa 1")
         cmd1 = "sudo /opt/dpi/cmdmsg xsa 1"
         cmd2 = "cat /dev/shm/xsa/xrt.stat |grep total|awk '{print $4}'"
@@ -178,6 +234,16 @@ class Dpi(SocketLinux):
             raise RuntimeError("清空dpi状态失败:/opt/dpi/cmdmsg xsa 1")
 
     def wait_flow_timeout(self, timeout=60):
+        """等待所有流超时。
+
+        等待 flow.stat 文件中的并发连接数降为 0。
+
+        Args:
+            timeout: 超时时间（秒），默认 60
+
+        Raises:
+            RuntimeError: 当等待超时时抛出异常
+        """
         logger.info(f"等待流超时({timeout}s)")
         cmd = "cat /dev/shm/xsa/flow.stat |grep concurrent_cnt|awk '{print $2}'"
         if re.match(r"\d{5,15}", self.cmd(cmd)):
@@ -187,7 +253,14 @@ class Dpi(SocketLinux):
             raise RuntimeError("等待流超时失败，等待时间：%ss" % timeout)
 
     def marex_policy_get(self, path="/opt/dpi/euconf/rule/eu_policy.rule"):
-        """返回策略的字节列表"""
+        """获取 Marex 策略文件内容。
+
+        Args:
+            path: 策略文件路径，默认 "/opt/dpi/euconf/rule/eu_policy.rule"
+
+        Returns:
+            list: 策略内容行列表，每行为 bytes 类型
+        """
         # [b"", b""]
         # cmd = f"cat {path}|grep -v ^#|grep -v ^//|grep -v '^$'"
         # res = c.ssh_exec_cmd(cmd).decode().strip().split("\n")

@@ -10,11 +10,25 @@ from xml.etree.ElementTree import Element
 
 
 def xml2dict(node):
-    """
-    将XML Element转换为字典
+    """将 XML Element 递归转换为字典。
 
-    :param node: xml.etree.ElementTree.Element对象
-    :return: dict - 转换后的字典
+    Args:
+        node (xml.etree.ElementTree.Element): XML 元素节点
+
+    Returns:
+        dict: 转换后的字典，格式为 {tag: {child_tags...} 或 text}
+
+    Raises:
+        Exception: 当输入不是 Element 对象时抛出
+
+    Examples:
+        >>> from xml.etree.ElementTree import Element
+        >>> root = Element('root')
+        >>> child = Element('item')
+        >>> child.text = 'value'
+        >>> root.append(child)
+        >>> xml2dict(root)
+        {'root': {'item': 'value'}}
     """
     if not isinstance(node, ET.Element):
         raise Exception("upper_node format error.")
@@ -38,13 +52,18 @@ def xml2dict(node):
 
 
 def dict2node(content, upper_node=None, key_tmp=None):
-    """
-    将字典转换为XML Element
+    """将字典递归转换为 XML Element。
 
-    :param content: 要转换的字典
-    :param upper_node: 父节点（Element对象）
-    :param key_tmp: 临时键名
-    :return: Element对象
+    Args:
+        content (dict or list or str or int or float): 要转换的字典或基本类型
+        upper_node (Element, optional): 父节点，默认创建根节点
+        key_tmp: 临时键名，用于列表元素
+
+    Returns:
+        Element: XML 元素节点
+
+    Raises:
+        RuntimeError: 遇到不支持的类型时抛出
     """
     if upper_node is None:
         key, val = list(content.items())[0]
@@ -133,17 +152,28 @@ def assembly_xml_encrypt(xml: str, idcId: str, commandType: int, commandVersion=
 
 
 class Xml:
-    """
-    XML处理类
+    """XML 处理类，支持从字符串或文件加载 XML。
+
+    Attributes:
+        root: XML 根元素
+        tree: ElementTree 对象（仅从文件加载时有值）
+
+    Examples:
+        >>> xml_obj = Xml(content='<root><item>value</item></root>')
+        >>> print(xml_obj.tostring())
+        '<root><item>value</item></root>'
     """
 
     def __init__(self, content=None, encoding="utf-8", file_path=None):
-        """
-        初始化XML对象
+        """初始化 Xml 对象。
 
-        :param content: XML内容（字符串）
-        :param encoding: 编码格式
-        :param file_path: XML文件路径
+        Args:
+            content (str, optional): XML 内容字符串
+            encoding (str, optional): 编码格式，默认 utf-8
+            file_path (str, optional): XML 文件路径
+
+        Raises:
+            ValueError: 未提供 content 或 file_path 时抛出
         """
         self._encoding = encoding
         if file_path:
@@ -155,22 +185,24 @@ class Xml:
             raise ValueError("必须提供content或file_path参数")
 
     def tostring(self, indent=False):
-        """
-        将XML转换为字符串
+        """将 XML 转换为字符串。
 
-        :param indent: 是否格式化输出
-        :return: XML字符串
+        Args:
+            indent (bool, optional): 是否格式化输出，默认 False
+
+        Returns:
+            str: XML 字符串
         """
         if indent:
             self._indent(self.root)
         return ET.tostring(self.root, encoding=self._encoding).decode()
 
     def _indent(self, elem, level=0):
-        """
-        格式化XML（添加缩进）
+        """递归格式化 XML（添加缩进）。
 
-        :param elem: Element对象
-        :param level: 缩进级别
+        Args:
+            elem: Element 对象
+            level: 缩进级别
         """
         i = "\n" + level * "  "
         if len(elem):

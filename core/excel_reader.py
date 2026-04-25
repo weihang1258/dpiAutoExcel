@@ -12,6 +12,21 @@ from io_handler.excel import Excel
 
 
 def parser_excel(path="用例.xlsx"):
+    """解析 Excel 测试用例文件。
+
+    读取 Excel 文件中的配置、设备初始化配置和用例信息。
+
+    Args:
+        path: Excel 文件路径，默认 "用例.xlsx"
+
+    Returns:
+        dict: 包含以下键的字典:
+            - config: 配置信息
+            - sheet_name2cases: sheet 名称到用例的映射
+            - sheet_name2head2col: sheet 名称到表头列索引的映射
+            - sheet_name2heads: sheet 名称到表头列表的映射
+            - config_dev: 设备初始化配置
+    """
     xls = Excel(path)
 
     # 获取配置信息
@@ -77,6 +92,17 @@ def parser_excel(path="用例.xlsx"):
 
 
 def casename2exp_log(p_excel: dict, sheet_name):
+    """从 Excel 数据中提取期望日志。
+
+    根据表头中以 'exp_' 开头的字段提取期望值。
+
+    Args:
+        p_excel: 包含 Excel 数据的字典
+        sheet_name: 需要处理的 sheet 名称
+
+    Returns:
+        dict: 用例名到期望值列表的映射
+    """
     cases = p_excel["sheet_name2cases"][sheet_name]
     head2col = (p_excel["sheet_name2head2col"][sheet_name])
     heads = list()
@@ -106,14 +132,16 @@ def casename2exp_log(p_excel: dict, sheet_name):
     return res
 
 def act_log(p_excel: dict, sheet_name, act_val_list, sort_flag=None):
-    """
-    根据Excel中的表头和实际值列表生成字典列表，并可选择进行排序。
+    """根据表头和实际值列表生成字典列表，并可选择进行排序。
 
-    :param p_excel: 包含Excel数据的字典，结构应包含'sheet_name2heads'键。
-    :param sheet_name: 需要处理的表格名称。
-    :param act_val_list: 包含实际值的列表，每个元素也是一个列表，对应表头的各个字段。
-    :param sort_flag: 可选，指定排序的字段，格式为逗号分隔的字符串。
-    :return: 包含处理后数据的列表，每个元素是一个字典。
+    Args:
+        p_excel: 包含 Excel 数据的字典，结构应包含 'sheet_name2heads' 键
+        sheet_name: 需要处理的表格名称
+        act_val_list: 包含实际值的列表，每个元素也是一个列表，对应表头的各个字段
+        sort_flag: 可选，指定排序的字段，格式为逗号分隔的字符串
+
+    Returns:
+        list: 包含处理后数据的列表，每个元素是一个字典
     """
     # print("act_val_list：", act_val_list)
 

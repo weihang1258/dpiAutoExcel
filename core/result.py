@@ -3,7 +3,11 @@
 # @Time    : 2023/9/21 10:14
 # @Author  : weihang
 # @File    : result.py
-# @Desc    : 结果写入Excel工具函数
+# @Desc    : 结果写入 Excel 工具函数
+"""结果写入 Excel 工具函数模块。
+
+提供将测试结果写入 Excel 文件的功能，支持去重和颜色标记。
+"""
 
 import os
 from utils.common import gettime, setup_logging
@@ -14,12 +18,11 @@ logger = setup_logging(log_file_path="log/result.log", logger_name="result")
 
 def result_deal(xls, sheet_index: str, result_list, row: int, head2col: dict, mark: list, only_write=False, isquit=True,
                newpath=None):
-    """
-    将测试结果写入Excel，支持去重和颜色标记
+    """将测试结果写入 Excel，支持去重和颜色标记。
 
     Args:
-        xls: Excel对象或路径
-        sheet_index: sheet名称
+        xls: Excel 对象或路径
+        sheet_index: sheet 名称
         result_list: 结果列表 [(row, col, value, bkgcolor), ...]
         row: 行号
         head2col: 表头到列的映射
@@ -27,6 +30,9 @@ def result_deal(xls, sheet_index: str, result_list, row: int, head2col: dict, ma
         only_write: 是否只写入
         isquit: 是否关闭保存
         newpath: 新路径
+
+    Returns:
+        str: 保存的文件路径
     """
     logger.info([xls, sheet_index, result_list, row, head2col, mark, only_write, isquit, newpath])
     logger.info("结果准备写入excel")

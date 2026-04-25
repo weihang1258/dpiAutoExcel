@@ -4,6 +4,11 @@
 # @Author  : weihang
 # @File    : pcap_analyzer.py
 # @Desc    : PCAP分析和比较工具函数
+"""PCAP 分析和比较工具函数模块。
+
+提供 pcap 文件解析、四元组提取、流量统计和比较功能。
+支持多种链路层类型（Ethernet、Raw IP、Linux Cooked 等）。
+"""
 
 import copy
 import io
@@ -27,8 +32,16 @@ HTTP_REQUEST_METHOD_PATTERN = re.compile(
 
 
 def _parse_packet_data(pkt_data, link_type, stats, seen, result, debug, endian):
-    """
-    解析单个数据包，提取四元组
+    """解析单个数据包，提取四元组信息。
+
+    Args:
+        pkt_data: 数据包原始字节数据
+        link_type: 链路层类型 (1=Ethernet, 101/228/229=Raw IP, 113/276=Linux Cooked, 0=Null/Loopback)
+        stats: 统计信息字典
+        seen: 已见到的流集合
+        result: 结果列表
+        debug: 是否启用调试输出
+        endian: 字节序 (大端 "@" 或小端 "!")
     """
     try:
         # -------------------------
@@ -177,8 +190,14 @@ def _parse_packet_data(pkt_data, link_type, stats, seen, result, debug, endian):
 
 
 def _extract_4tuple_from_pcapng(f, debug, stats, seen, result):
-    """
-    解析 PCAP-NG 格式文件
+    """解析 PCAP-NG 格式文件。
+
+    Args:
+        f: 文件对象
+        debug: 是否启用调试输出
+        stats: 统计信息字典
+        seen: 已见到的流集合
+        result: 结果列表
     """
     link_type = 1  # 默认以太网
     endian = "<"  # PCAP-NG 默认小端序
@@ -255,8 +274,7 @@ def _extract_4tuple_from_pcapng(f, debug, stats, seen, result):
 
 
 def extract_4tuple_from_pcap(pcap_input, debug=False):
-    """
-    解析 PCAP 文件并提取四元组，支持多种链路层类型
+    """解析 PCAP 文件并提取四元组，支持多种链路层类型。
 
     支持的格式：
     - 标准 PCAP (微秒/纳秒精度)
@@ -266,9 +284,12 @@ def extract_4tuple_from_pcap(pcap_input, debug=False):
     - Linux cooked capture v2 (link type 276)
     - Null/Loopback (link type 0)
 
-    :param pcap_input: str(文件路径) 或 bytes 或 BytesIO对象
-    :param debug: 是否打印调试信息
-    :return: list[dict]
+    Args:
+        pcap_input: str(文件路径) 或 bytes 或 BytesIO 对象
+        debug: 是否打印调试信息
+
+    Returns:
+        list[dict]: 四元组列表，每个元素包含 src_ip, src_port, dst_ip, dst_port
     """
 
     stats = {
@@ -531,11 +552,13 @@ def extract_4tuple_from_pcap(pcap_input, debug=False):
 
 
 def get_synNo(pkts) -> list:
-    """
-    获取TCP SYN/SA包的索引列表
+    """获取 TCP SYN/SA 包的索引列表。
 
-    :param pkts: 包列表
-    :return: SYN/SA包索引列表
+    Args:
+        pkts: Scapy 包列表
+
+    Returns:
+        list: SYN/SA 包索引列表
     """
     ret = list()
     ack_seq = list()
@@ -565,11 +588,13 @@ def get_synNo(pkts) -> list:
 
 
 def get_tuple(pkt):
-    """
-    从包中提取四元组信息
+    """从包中提取四元组信息。
 
-    :param pkt: Scapy包对象
-    :return: 四元组字典
+    Args:
+        pkt: Scapy 包对象
+
+    Returns:
+        dict: 四元组字典，包含 l3, l4, l5, sip, dip, sport, dport 键
     """
     ret = {'l3': None, 'l4': None, 'l5': None, 'sip': None, 'dip': None, 'sport': None, 'dport': None}
 
@@ -617,12 +642,14 @@ def get_tuple(pkt):
 
 
 def rst_check(pcap, direction):
-    """
-    封堵包检查
+    """封堵包检查。
 
-    :param pcap: 包路径或者二进制文件
-    :param direction: 封堵包方向，0：上行，1：下行
-    :return: 错误列表
+    Args:
+        pcap: 包路径或者二进制文件
+        direction: 封堵包方向，0：上行，1：下行
+
+    Returns:
+        list: 错误列表（最多200条）
     """
     err_list = list()
     pkts = rdpcap(pcap) if type(pcap) in (str, io.IOBase) else pcap
@@ -666,16 +693,17 @@ def rst_check(pcap, direction):
 
 
 def compare_pcap(pcap_exp, pcap_act, flowsplit=False, ignore_syn=False, **kwargs):
-    """
-    比较两个PCAP文件
+    """比较两个 PCAP 文件。
 
-    :param pcap_exp: 预期PCAP文件路径或包列表
-    :param pcap_act: 实际PCAP文件路径或包列表
-    :param flowsplit: 是否按流分割
-    :param ignore_syn: 是否忽略SYN包
-    :param kwargs: 其他参数，用于指定特定层的期望值，如 TCP={seq: 1000}
-    :return: 无返回值，成功则无异常
-    :raises RuntimeError: 比较失败时抛出异常
+    Args:
+        pcap_exp: 预期 PCAP 文件路径或包列表
+        pcap_act: 实际 PCAP 文件路径或包列表
+        flowsplit: 是否按流分割
+        ignore_syn: 是否忽略 SYN 包
+        **kwargs: 其他参数，用于指定特定层的期望值，如 TCP={seq: 1000}
+
+    Raises:
+        RuntimeError: 比较失败时抛出异常
     """
     rd_exp = pcap_exp if type(pcap_exp) in (list, PacketList) else rdpcap(pcap_exp)
     rd_act = pcap_act if type(pcap_act) in (list, PacketList) else rdpcap(pcap_act)
@@ -1031,11 +1059,10 @@ class Pcap2Flowtable:
 
 
 def get_http_request_fields(load):
-    """
-    解析HTTP请求
+    """解析 HTTP 请求。
 
     Args:
-        load: HTTP载荷 (bytes)
+        load: HTTP 载荷 (bytes)
 
     Returns:
         dict: 包含 method, uri, version, headers 等字段
@@ -1054,11 +1081,10 @@ def get_http_request_fields(load):
 
 
 def get_http_response_fields(load):
-    """
-    解析HTTP响应
+    """解析 HTTP 响应。
 
     Args:
-        load: HTTP响应载荷 (bytes)
+        load: HTTP 响应载荷 (bytes)
 
     Returns:
         dict: 包含 version, code, description, headers 等字段

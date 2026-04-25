@@ -3,6 +3,12 @@
 # @Time    : 2023/3/7 15:31
 # @Author  : weihang
 # @File    : excel.py
+"""Excel 文件处理模块。
+
+提供 Excel 文件的读取、写入、格式设置等功能。
+基于 xlwings 库实现。
+"""
+
 import json
 import os
 import sys
@@ -13,7 +19,24 @@ from utils.common import convert_unit_string
 
 
 class Excel:
+    """Excel 文件操作类。
+
+    提供 Excel 文件的读取、写入、格式设置等功能。
+    基于 xlwings 库实现。
+
+    Attributes:
+        path: Excel 文件路径
+        is_open: 文件是否已打开
+        app: xlwings App 实例
+        workbook: xlwings Workbook 实例
+    """
+
     def __init__(self, path):
+        """初始化 Excel 实例。
+
+        Args:
+            path: Excel 文件路径
+        """
         self.path = path
         self.is_open = self._is_open()
         self.app = xlwings.App(visible=False, add_book=False)
@@ -24,11 +47,15 @@ class Excel:
         else:
             self.workbook = self.app.books.add()
 
-    # def __del__(self):
-    #     self.quit_without_save()
-
     def int2col_str(self, n):
-        '''excel中数字转换成列名'''
+        """Excel 中数字转换成列名。
+
+        Args:
+            n: 列的数字索引（从1开始）
+
+        Returns:
+            str: 列名字母串（如 1->A, 27->AA）
+        """
         assert (isinstance(n, int) and n > 0)
         num = [chr(i) for i in range(65, 91)]
         ret = []
@@ -38,7 +65,14 @@ class Excel:
         return ''.join(ret[::-1])
 
     def col_str2int(self, s):
-        '''excel中列名转换成数字'''
+        """Excel 中列名转换成数字。
+
+        Args:
+            s: 列名字母串（如 A, AA）
+
+        Returns:
+            int: 列的数字索引（从1开始）
+        """
         assert (isinstance(s, str))
         for i in s:
             if not 64 < ord(i) < 91:
@@ -46,12 +80,40 @@ class Excel:
         return sum([(ord(n) - 64) * 26 ** i for i, n in enumerate(list(s)[::-1])])
 
     def row(self, sheet_index):
+        """获取指定 sheet 的最后一行。
+
+        Args:
+            sheet_index: sheet 索引
+
+        Returns:
+            int: 最后一行行号
+        """
         return int(self.workbook.sheets[sheet_index].used_range.last_cell.row)
 
     def col(self, sheet_index):
+        """获取指定 sheet 的最后一列。
+
+        Args:
+            sheet_index: sheet 索引
+
+        Returns:
+            int: 最后一列列号
+        """
         return int(self.workbook.sheets[sheet_index].used_range.last_cell.column)
 
     def range_values(self, sheet_index, row1, col1, row2=None, col2=None):
+        """获取指定范围的单元格值。
+
+        Args:
+            sheet_index: sheet 索引
+            row1: 起始行（从0开始）
+            col1: 起始列（从0开始）
+            row2: 结束行，None 表示最后一行
+            col2: 结束列，None 表示最后一列
+
+        Returns:
+            list: 单元格值列表
+        """
         if not row2:
             row2 = self.row(sheet_index=sheet_index)
         if not col2:
@@ -60,16 +122,48 @@ class Excel:
                                                        f"{self.int2col_str(col2 + 1)}{row2 + 1}").value
 
     def row_values(self, sheet_index, rowx=0, col_start=0, col_end=None) -> list:
+        """获取指定行的所有单元格值。
+
+        Args:
+            sheet_index: sheet 索引
+            rowx: 行索引（从0开始）
+            col_start: 起始列（从0开始）
+            col_end: 结束列，None 表示最后一列
+
+        Returns:
+            list: 该行的单元格值列表
+        """
         col_end = col_end if col_end else self.col(sheet_index=sheet_index)
         location = f"{self.int2col_str(col_start + 1)}{rowx + 1}:{self.int2col_str(col_end + 1)}{rowx + 1}"
         return self.workbook.sheets[sheet_index].range(location).value
 
     def col_values(self, sheet_index, colx=0, row_start=0, row_end=None) -> list:
+        """获取指定列的所有单元格值。
+
+        Args:
+            sheet_index: sheet 索引
+            colx: 列索引（从0开始）
+            row_start: 起始行（从0开始）
+            row_end: 结束行，None 表示最后一行
+
+        Returns:
+            list: 该列的单元格值列表
+        """
         row_end = row_end if row_end else self.row(sheet_index=sheet_index)
         location = f"{self.int2col_str(colx + 1)}{row_start + 1}:{self.int2col_str(colx + 1)}{row_end + 1}"
         return self.workbook.sheets[sheet_index].range(location).value
 
     def head2value(self, sheet_index, keys: list, head_row=0) -> dict:
+        """根据表头获取单元格值。
+
+        Args:
+            sheet_index: sheet 索引
+            keys: 用于生成行唯一标识的列名列表
+            head_row: 表头行索引（从0开始）
+
+        Returns:
+            dict: {行标识: [{列名: 值, ...}, ...], ...}
+        """
         res = dict()
         if sheet_index not in self.workbook.sheet_names:
             return res
@@ -107,7 +201,16 @@ class Excel:
         return res
 
     def write_row_values(self, sheet_index, value, rowx=0, colx=0, bkgcolor=None, linestyle=1):
-        # print(time.time(),rowx,colx,bkgcolor)
+        """写入一行数据。
+
+        Args:
+            sheet_index: sheet 索引
+            value: 要写入的值或值列表
+            rowx: 行索引（从0开始）
+            colx: 起始列索引（从0开始）
+            bkgcolor: 背景色 RGB 元组
+            linestyle: 边框样式
+        """
         if type(value) != list:
             location = f"{self.int2col_str(colx + 1)}{rowx + 1}"
         else:
@@ -119,7 +222,16 @@ class Excel:
             data_range.api.Borders(i).LineStyle = linestyle
 
     def write_col_values(self, sheet_index, value, colx=0, rowx=0, bkgcolor=None, linestyle=1):
-        # print([sheet_index, value, colx, rowx])
+        """写入一列数据。
+
+        Args:
+            sheet_index: sheet 索引
+            value: 要写入的值或值列表
+            colx: 列索引（从0开始）
+            rowx: 起始行索引（从0开始）
+            bkgcolor: 背景色 RGB 元组
+            linestyle: 边框样式
+        """
         if type(value) != list:
             location = f"{self.int2col_str(colx + 1)}{rowx + 1}"
         else:
@@ -131,6 +243,18 @@ class Excel:
             data_range.api.Borders(i).LineStyle = linestyle
 
     def write_range_values(self, sheet_index, value, row1, col1, row2=None, col2=None, bkgcolor=None, linestyle=1):
+        """写入指定范围的数据。
+
+        Args:
+            sheet_index: sheet 索引
+            value: 要写入的值
+            row1: 起始行（从0开始）
+            col1: 起始列（从0开始）
+            row2: 结束行，None 表示单个单元格
+            col2: 结束列，None 表示单个单元格
+            bkgcolor: 背景色 RGB 元组
+            linestyle: 边框样式
+        """
         if row2:
             location = f"{self.int2col_str(col1 + 1)}{row1 + 1}:{self.int2col_str(col2 + 1)}{row2 + 1}"
         else:

@@ -13,19 +13,30 @@ logger = setup_logging(log_file_path="log/hengwei.log", logger_name="hengwei")
 
 
 class HengweiDevice:
-    """恒为网络设备SSH控制类"""
+    """恒为网络设备 SSH 控制类。
+
+    通过 SSH 连接控制恒为网络设备，支持命令执行和模式切换。
+
+    Attributes:
+        hostname (str): 目标设备主机名或 IP 地址
+        port (int): SSH 端口
+        username (str): 登录用户名
+        password (str): 登录密码
+        pkey: Paramiko RSAKey 私钥对象
+        client: Paramiko SSHClient 对象
+        shell: SSH Shell 对象
+    """
 
     def __init__(self, hostname, port=22, username=None, password=None, pkey=None, passphrase=None):
-        """
-        初始化Hengwei设备的SSH连接。
+        """初始化 Hengwei 设备的 SSH 连接。
 
-        参数：
-        - hostname (str): 目标设备的主机名或IP地址。
-        - port (int): SSH端口，默认为22。
-        - username (str): 登录用户名。
-        - password (str): 登录密码。
-        - pkey (str): 私钥文件路径。
-        - passphrase (str): 私钥密码。
+        Args:
+            hostname: 目标设备的主机名或 IP 地址
+            port: SSH 端口，默认为 22
+            username: 登录用户名
+            password: 登录密码
+            pkey: 私钥文件路径
+            passphrase: 私钥密码
         """
         import paramiko
         self.hostname = hostname
@@ -39,7 +50,7 @@ class HengweiDevice:
         self._connect()
 
     def _connect(self):
-        """建立SSH连接并启动shell"""
+        """建立 SSH 连接并启动 shell。"""
         self.client.connect(
             self.hostname,
             port=self.port,
@@ -52,16 +63,14 @@ class HengweiDevice:
         time.sleep(1)  # Give the shell some time to start
 
     def execute_command(self, command, prompt=None):
-        """
-        在设备上执行命令并获取输出。
+        """在设备上执行命令并获取输出。
 
-        参数：
-        - command (str): 要执行的命令。
-        - prompt (str): 命令的响应结尾符，默认为None。
+        Args:
+            command: 要执行的命令
+            prompt: 命令的响应结尾符，默认为 '>'
 
-        返回值：
-        - stdout (str): 命令执行的标准输出。
-        - stderr (str): 命令执行的标准错误输出。
+        Returns:
+            tuple: (stdout, stderr) 命令执行的标准输出和标准错误
         """
         prompt = prompt or '>'
         self.shell.send(command + '\n')
@@ -79,11 +88,13 @@ class HengweiDevice:
         return stdout_data, stderr_data
 
     def switch_mode(self, mode):
-        """
-        切换设备模式（例如，进入系统视图或admin视图）。
+        """切换设备模式。
 
-        参数：
-        - mode (str): 目标模式，例如 'system' 或 'admin'。
+        Args:
+            mode: 目标模式，如 'system' 或 'admin'
+
+        Raises:
+            ValueError: 当模式不支持时抛出异常
         """
         if mode == 'system':
             self.execute_command('system-view')
@@ -93,7 +104,7 @@ class HengweiDevice:
             raise ValueError("Unsupported mode: {}".format(mode))
 
     def close(self):
-        """关闭SSH连接。"""
+        """关闭 SSH 连接。"""
         if self.shell:
             self.shell.close()
         self.client.close()

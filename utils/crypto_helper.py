@@ -23,22 +23,34 @@ logger = setup_logging(log_file_path="log/crypto.log", logger_name="crypto")
 
 
 def random_str(length, chars=string.ascii_letters + '0123456789'):
-    """
-    生成随机字符串
+    """生成指定长度的随机字符串。
 
-    :param length: 字符串长度
-    :param chars: 字符集
-    :return: 随机字符串
+    Args:
+        length (int): 随机字符串长度
+        chars (str, optional): 字符集，默认包含字母和数字
+
+    Returns:
+        str: 随机生成的字符串
+
+    Examples:
+        >>> random_str(8)
+        'aB3xY7zQ'
     """
     return ''.join(random.choice(chars) for x in range(length))
 
 
 def pad(text):
-    """
-    PKCS7填充
+    """使用 PKCS7 填充数据。
 
-    :param text: 要填充的数据（bytes）
-    :return: 填充后的数据
+    Args:
+        text (bytes): 要填充的原始数据
+
+    Returns:
+        bytes: PKCS7 填充后的数据
+
+    Examples:
+        >>> pad(b"Hello")
+        b'Hello\\x0b\\x0b\\x0b\\x0b\\x0b\\x0b\\x0b\\x0b\\x0b\\x0b\\x0b'
     """
     block_size = 16
     padding_size = block_size - len(text) % block_size
@@ -47,24 +59,36 @@ def pad(text):
 
 
 def unpad(text):
-    """
-    去除PKCS7填充
+    """去除 PKCS7 填充。
 
-    :param text: 填充后的数据（bytes）
-    :return: 去除填充后的数据
+    Args:
+        text (bytes): 填充后的数据
+
+    Returns:
+        bytes: 去除填充后的原始数据
+
+    Examples:
+        >>> unpad(b'Hello\\x0b\\x0b\\x0b\\x0b\\x0b\\x0b\\x0b\\x0b\\x0b\\x0b\\x0b')
+        b'Hello'
     """
     padding_size = text[-1]
     return text[:-padding_size]
 
 
 def encrypt_cbc(data, key, iv):
-    """
-    AES CBC加密
+    """AES CBC 模式加密。
 
-    :param data: 要加密的数据（bytes）
-    :param key: 密钥（bytes）
-    :param iv: 初始向量（bytes）
-    :return: 加密后的数据
+    Args:
+        data (bytes): 要加密的原始数据
+        key (bytes): AES 密钥（16/24/32 字节）
+        iv (bytes): 初始向量（16 字节）
+
+    Returns:
+        bytes: 加密后的数据
+
+    Examples:
+        >>> encrypt_cbc(b"Hello", b"1234567890123456", b"0000000000000000")
+        b'...'
     """
     data = pad(data)
     backend = default_backend()
@@ -75,19 +99,25 @@ def encrypt_cbc(data, key, iv):
 
 
 def decrypt_cbc(data, key, iv):
-    """
-    AES CBC解密
+    """AES CBC 模式解密。
 
-    :param data: 要解密的数据（bytes）
-    :param key: 密钥（bytes）
-    :param iv: 初始向量（bytes）
-    :return: 解密后的数据
+    Args:
+        data (bytes): 要解密的数据
+        key (bytes): AES 密钥（16/24/32 字节）
+        iv (bytes): 初始向量（16 字节）
+
+    Returns:
+        bytes: 解密后的原始数据
+
+    Examples:
+        >>> decrypt_cbc(encrypted, b"1234567890123456", b"0000000000000000")
+        b'Hello'
     """
     backend = default_backend()
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
     decryptor = cipher.decryptor()
     decrypted_data = decryptor.update(data) + decryptor.finalize()
-    return decrypted_data
+    return unpad(decrypted_data)
 
 
 def encrypt_idc_command(xml, encryptAlgorithm=1, compressionFormat=1, hashAlgorithm=1, inter_pwd="KWQ239",

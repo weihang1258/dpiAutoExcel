@@ -4,6 +4,11 @@
 # @Author  : weihang
 # @File    : dpiinstall.py
 # @Desc    : DPI 安装升级模块，支持全新安装、模式切换、版本升级等功能
+"""DPI 安装升级模块。
+
+支持全新安装、模式切换、版本升级等功能。
+提供 DPI 设备固件升级、配置管理、日志处理等核心功能。
+"""
 
 import os
 import re
@@ -32,8 +37,9 @@ logger = setup_logging(log_file_path="log/install.log", logger_name="install")
 
 
 def get_display_width(text):
-    """
-    计算字符串的实际显示宽度（中文字符占2个宽度，其他字符占1个宽度）
+    """计算字符串的实际显示宽度。
+
+    中文字符占2个宽度，其他字符占1个宽度。
 
     Args:
         text: 要计算宽度的字符串
@@ -52,8 +58,7 @@ def get_display_width(text):
 
 
 def sanitize_case_name(case_name):
-    """
-    清理用例名称，移除或替换文件系统不支持的字段
+    """清理用例名称，移除或替换文件系统不支持的字段。
 
     Args:
         case_name: 原始用例名称
@@ -70,8 +75,7 @@ def sanitize_case_name(case_name):
 
 
 def print_case_separator(case_name, logger, log_file=None):
-    """
-    打印用例分隔符
+    """打印用例分隔符。
 
     Args:
         case_name: 用例名称
@@ -89,8 +93,7 @@ def print_case_separator(case_name, logger, log_file=None):
 
 
 def print_stage_separator(stage_name, logger):
-    """
-    打印阶段分隔符
+    """打印阶段分隔符。
 
     Args:
         stage_name: 阶段名称
@@ -109,8 +112,7 @@ def print_stage_separator(stage_name, logger):
 
 
 def parse_version(version_str: str) -> tuple:
-    """
-    解析版本号字符串为可比较的元组
+    """解析版本号字符串为可比较的元组。
 
     支持格式：
         - "1.0.6.2-4" -> (1, 0, 6, 2, 4, 0, 0)  # 最后一位 0 表示正式版
@@ -120,7 +122,7 @@ def parse_version(version_str: str) -> tuple:
         version_str: 版本号字符串
 
     Returns:
-        可比较的元组
+        tuple: 可比较的元组
     """
     # 定义字母标识符权重
     letter_weights = {
@@ -150,15 +152,14 @@ def parse_version(version_str: str) -> tuple:
 
 
 def compare_versions(v1: str, v2: str) -> int:
-    """
-    比较两个版本号
+    """比较两个版本号。
 
     Args:
         v1: 版本号1
         v2: 版本号2
 
     Returns:
-        -1 (v1 < v2), 0 (v1 == v2), 1 (v1 > v2)
+        int: -1 (v1 < v2), 0 (v1 == v2), 1 (v1 > v2)
     """
     parsed_v1 = parse_version(v1)
     parsed_v2 = parse_version(v2)

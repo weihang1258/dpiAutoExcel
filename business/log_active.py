@@ -33,15 +33,14 @@ from device.dpi_constants import (
 
 
 def log_active(p_excel: dict, sheets_sendpkt, sheets_actdomain_list, path="用例", newpath=None):
-    """
-    处理活跃日志测试
+    """处理活跃日志测试。
 
-    参数:
-        p_excel: Excel解析结果
-        sheets_sendpkt: 发包sheet名称
-        sheets_actdomain_list: 活跃域sheet列表
-        path: Excel文件路径
-        newpath: 新Excel文件路径
+    Args:
+        p_excel: Excel 解析结果
+        sheets_sendpkt: 发包 sheet 名称
+        sheets_actdomain_list: 活跃域 sheet 列表
+        path: Excel 文件路径
+        newpath: 新 Excel 文件路径
     """
     logger.info(f"---------------------开始执行excel：{path}，sheet：{sheets_sendpkt}---------------------")
 

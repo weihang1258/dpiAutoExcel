@@ -7,15 +7,29 @@ from utils.ini_handler import extract_field_paths
 
 
 class XMLComparer:
-    def __init__(self, xml_str_exp, xml_str_act, ignore_fields=None, time_fields=None, length_fields=None):
-        """
-        初始化 XML 比较器。
+    """XML 字符串比较器，支持复杂的 XML 结构比对。
 
-        :param xml_str_exp: 第一个 XML 字符串
-        :param xml_str_act: 第二个 XML 字符串
-        :param ignore_fields: 要忽略对比的字段列表（这些字段的值不会进行对比，但字段存在性会被检查）
-        :param time_fields: 需要进行时间区间判断的字段字典，格式为 {字段路径: (开始时间, 结束时间)}
-        :param length_fields: 需要对比值长度的字段列表（对这些字段的值进行长度对比）
+    将 XML 字符串解析为字典后进行比对，支持忽略字段、时间区间判断、长度对比等高级功能。
+
+    Attributes:
+        dict1: 解析后的第一个字典
+        dict2: 解析后的第二个字典
+        differences: 所有差异列表
+        ignore_fields: 忽略对比的字段列表
+        time_fields: 时间区间字段字典
+        length_fields: 长度对比字段列表
+    """
+
+    def __init__(self, xml_str_exp, xml_str_act, ignore_fields=None, time_fields=None, length_fields=None):
+        """初始化 XML 比较器。
+
+        Args:
+            xml_str_exp: 第一个 XML 字符串
+            xml_str_act: 第二个 XML 字符串
+            ignore_fields (list, optional): 要忽略对比的字段列表
+            time_fields (dict, optional): 时间区间字段字典，
+                格式为 {字段路径: (开始时间, 结束时间)}
+            length_fields (list, optional): 需要对比值长度的字段列表
         """
         print((xml_str_exp, xml_str_act, ignore_fields, time_fields, length_fields))
         self.dict1 = self.xml_to_dict(xml_str_exp)  # 将第一个 XML 字符串解析为字典
@@ -90,63 +104,64 @@ class XMLComparer:
         # print(f"self.time_fields: {self.time_fields}")
 
     def parse_time_fields(self, time_fields):
-        """
-        将时间字段中的时间范围字符串转换为时间戳，并格式化时间区间。
+        """将时间字段中的时间范围字符串转换为时间戳。
 
-        :param time_fields: 时间字段字典，格式为 {字段路径: (开始时间, 结束时间)}
-        :return: 转换后的时间戳字典，格式为 {字段路径: (开始时间戳, 结束时间戳, (开始时间格式化, 结束时间格式化))}
+        Args:
+            time_fields (dict): 时间字段字典，格式为 {字段路径: (开始时间, 结束时间)}
+
+        Returns:
+            dict: 转换后的时间戳字典，
+                格式为 {字段路径: (开始时间戳, 结束时间戳, 格式化开始时间, 格式化结束时间)}
         """
         result = {}
         for field, (start_time, end_time) in time_fields.items():
             try:
                 if type(start_time) == int or str(start_time).isdigit():
-                    start_timestamp = int(start_time)  # 如果已经是时间戳格式
+                    start_timestamp = int(start_time)
                 else:
                     start_timestamp = int(datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S').timestamp())
                 start_time_formatted = start_time
             except ValueError:
-                start_timestamp = int(start_time)  # 如果已经是时间戳格式
+                start_timestamp = int(start_time)
                 start_time_formatted = datetime.fromtimestamp(start_timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
             try:
                 if type(end_time) == int or str(end_time).isdigit():
-                    end_timestamp = int(end_time)  # 如果已经是时间戳格式
+                    end_timestamp = int(end_time)
                 else:
                     end_timestamp = int(datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S').timestamp())
                 end_time_formatted = end_time
             except ValueError:
-                end_timestamp = int(end_time)  # 如果已经是时间戳格式
+                end_timestamp = int(end_time)
                 end_time_formatted = datetime.fromtimestamp(end_timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
             result[field] = (start_timestamp, end_timestamp, start_time_formatted, end_time_formatted)
         return result
 
     def compare(self):
-        """
-        开始比较两个 XML 字典，并输出所有差异。
+        """比较两个 XML 字典并输出所有差异。
 
-        :return: 如果两个 XML 字符串相同则返回 True，否则返回 False
+        Returns:
+            bool: 如果两个 XML 字符串相同返回 True，否则返回 False
         """
         self.compare_dicts(self.dict1, self.dict2)
         if self.differences:
             for diff in self.differences:
-                print(diff)  # 输出所有的差异
+                print(diff)
             return False
         return True
 
     def compare_values(self, val1, val2, path=''):
-        """
-        比较两个值的函数，支持字典、列表以及基本类型的比较。
+        """比较两个值，支持字典、列表和基本类型。
 
-        :param val1: 第一个值
-        :param val2: 第二个值
-        :param path: 当前字段的路径（用于输出差异）
+        Args:
+            val1: 第一个值
+            val2: 第二个值
+            path (str, optional): 当前字段路径
         """
-        # 检查是否忽略此字段
         if path in self.ignore_fields:
             return
 
-        # 处理长度对比字段
         if path in self.length_fields:
             if len(str(val1)) != len(str(val2)):
                 self.differences.append(f"不一致在 {path}: 长度不同 {len(val1)} != {len(val2)}")

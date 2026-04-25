@@ -3,29 +3,57 @@
 # @Time    : 2023/3/14 14:01
 # @Author  : weihang
 # @File    : dpistat.py
+"""DPI 设备状态检查模块。
+
+提供 DPI 设备 stat 文件的解析和检查功能。
+stat 文件位于 /dev/shm/xsa/ 目录下，包含 XRT、端口流量、Flow 等状态信息。
+"""
+
 import itertools
 import re
 import sys
 import time
 from utils.common import setup_logging
 from device.socket_linux import SocketLinux
+
 logger = setup_logging(log_file_path="log/dpistat.log", logger_name="dpistat")
 
+# 动作类型到 stat 文件路径的映射
 action2marex_policy = {"eu_plc": "/dev/shm/xsa/marex_eupolicy.stat",
                        "pcapdump": "/dev/shm/xsa/marex_pcapdump.stat",
                        "mirr": "/dev/shm/xsa/marex_mirrorvlan.stat",
                        "vpn_block": "/dev/shm/xsa/marex_vpn_block.stat"}
+
+
 class CheckDpiStat(SocketLinux):
+    """DPI 状态检查类。
+
+    继承自 SocketLinux，提供 DPI 设备 stat 文件的远程读取和解析。
+
+    Attributes:
+        xrt_dict: XRT 状态字典
+        xrtinfo_dict: XRT 信息字典
+    """
+
     def __init__(self, client: tuple):
+        """初始化 DPI 状态检查器。
+
+        Args:
+            client: Socket 连接元组 (host, port)
+        """
         super().__init__(client)
         self.xrt_dict = self.xrt2dict()
         self.xrtinfo_dict = self.xrtinfo2dict()
 
     def xrt2dict(self):
+        """解析 /dev/shm/xsa/xrt.stat 文件。
+
+        Returns:
+            dict: {设备名: {指标名: 值, ...}, ...}
+        """
         path = "/dev/shm/xsa/xrt.stat"
         res = dict()
         response = self.cmd("cat %s" % path)
-        # logger.info(response)
         response2list = response.strip().split("\n")
         head = re.findall(r"[A-Z]\w+(?: [a-z]+)?", response2list[0].strip())
         for line in response2list[1:]:
@@ -35,10 +63,14 @@ class CheckDpiStat(SocketLinux):
         return res
 
     def xrtinfo2dict(self):
+        """解析 /dev/shm/xsa/xrtinfo.stat 文件。
+
+        Returns:
+            dict: {设备名: {指标名: 值, ...}, ...}
+        """
         path = "/dev/shm/xsa/xrtinfo.stat"
         res = dict()
         response = self.cmd("cat %s|grep dev -A 15" % path)
-        # logger.info(response)
         response2list = response.strip().split("\n")
         head = re.findall(r"\w+", response2list[0].strip())
         for line in response2list[1:]:
@@ -47,10 +79,14 @@ class CheckDpiStat(SocketLinux):
         return res
 
     def port_for_snmp2dict(self):
+        """解析 /dev/shm/xsa/port_for_snmp.stat 文件。
+
+        Returns:
+            dict: {端口名: {指标名: 值, ...}, ...}
+        """
         path = "/dev/shm/xsa/port_for_snmp.stat"
         res = dict()
         response = self.cmd("cat %s" % path)
-        # logger.info(response)
         response2list = response.strip().split("\n")
         head = re.findall(r"(?:RX |TX )?\w+", response2list[0].strip())
         for line in response2list[1:]:
@@ -59,10 +95,14 @@ class CheckDpiStat(SocketLinux):
         return res
 
     def flow2dict(self):
+        """解析 /dev/shm/xsa/flow.stat 文件。
+
+        Returns:
+            dict: {指标名: 值, ...}
+        """
         path = "/dev/shm/xsa/flow.stat"
         res = dict()
         response = self.cmd("cat %s|grep all -A 70" % path)
-        # logger.info(response)
         response2list = response.strip().split("\n")
         for line in response2list:
             line = line.strip()
@@ -72,7 +112,12 @@ class CheckDpiStat(SocketLinux):
                 res[key] = value
         return res
 
-    def check_flow(self):
+    def check_flow(self) -> list:
+        """检查 Flow 状态，查找失败项。
+
+        Returns:
+            list: 失败项列表 [{指标名: 值}, ...]
+        """
         err_list = list()
         flow2dict = self.flow2dict()
         for key, val in flow2dict.items():
@@ -83,10 +128,14 @@ class CheckDpiStat(SocketLinux):
         return err_list
 
     def httpxdr2dict(self):
+        """解析 /dev/shm/xsa/httpxdr.stat 文件。
+
+        Returns:
+            dict: {线程名: {指标名: 值, ...}, ...}
+        """
         path = "/dev/shm/xsa/httpxdr.stat"
         res = dict()
         response = self.cmd("cat %s" % path)
-        # logger.info(response)
         response2list = response.strip().split("\n")
         head = re.findall(r"\w+", response2list[0].strip())
         for line in response2list[1:]:
@@ -94,7 +143,12 @@ class CheckDpiStat(SocketLinux):
             res[line2list[0]] = dict(zip(head[1:], line2list[1:]))
         return res
 
-    def check_httpxdr(self):
+    def check_httpxdr(self) -> list:
+        """检查 HTTP XDR 状态，查找失败项。
+
+        Returns:
+            list: 失败项列表 [{thread: 线程名, 指标名: 值}, ...]
+        """
         err_list = list()
         httpxdr2dict1 = self.httpxdr2dict()
         for thread, data in httpxdr2dict1.items():

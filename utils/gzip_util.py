@@ -9,14 +9,17 @@ import gzip
 
 
 def compress_gzip(content):
-    """
-    gzip压缩数据
+    """Gzip 压缩数据。
 
     Args:
-        content: 要压缩的内容 (bytes)
+        content (bytes): 要压缩的原始数据
 
     Returns:
-        bytes: 压缩后的数据
+        bytes: 压缩后的 gzip 数据
+
+    Examples:
+        >>> data = b"Hello, World!"
+        >>> compressed = compress_gzip(data)
     """
     compressed_data = gzip.compress(content)
     return compressed_data

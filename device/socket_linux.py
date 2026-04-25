@@ -31,31 +31,31 @@ def decompress_gzip(compressed_data):
 
 
 class SocketLinux:
-    _initialized_connections = set()
-    def __init__(self, client):
-        self.client = None
-        if type(client) == tuple:
-            self.host, self.port = client
-            logger.info(f"建立socket连接，host：{self.host},port：{self.port}")
-            self.client = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
-            try:
-                self.client.connect(client)
+    """Linux 设备 Socket 通信客户端。
 
-                # 判断是否首次连接，首次连接会更新系统时间
-                if str(client) not in SocketLinux._initialized_connections:
-                    self.update_systime()
-                    SocketLinux._initialized_connections.add(str(client))
-            except Exception:
-                # 连接或初始化失败，确保关闭 socket
-                if self.client:
-                    try:
-                        self.client.close()
-                    except:
-                        pass
-                raise
-        else:
-            self.client = client
-        self.cmd_template = {"args": "ls -d /tmp/pcap_auto|wc -l", "cwd": None, "env": None, "shell": True, "stdout": subprocess.PIPE, "stderr": subprocess.PIPE, "encoding": "utf-8"}
+    基于二进制协议与远程 Linux 设备通信，支持命令执行、文件传输等操作。
+    协议格式：<长度(4字节)><gzip压缩的JSON数据>
+
+    Attributes:
+        host (str): 远程主机地址
+        port (int): 远程主机端口
+        client (socket.socket): Socket 连接对象
+
+    Examples:
+        >>> client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        >>> client.connect(("192.168.1.100", 9000))
+        >>> with SocketLinux(client) as s:
+        ...     result = s.cmd("ls -la")
+        ...     print(result)
+    """
+    _initialized_connections = set()
+
+    def __init__(self, client):
+        """初始化 SocketLinux 客户端。
+
+        Args:
+            client: socket.socket 对象或 (host, port) 元组
+        """
 
 
 

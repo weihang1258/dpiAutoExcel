@@ -144,11 +144,17 @@ content2formats = {
 
 
 def fmt_str2datatype_str(fmt_str: str):
-    """
-    将格式字符串转换为数据类型描述
+    """将格式字符串转换为数据类型描述。
 
-    :param fmt_str: 格式字符串，如 "13s", "B", "H"
-    :return: 数据类型描述字符串
+    Args:
+        fmt_str (str): 格式字符串，如 "13s", "B", "H"
+
+    Returns:
+        str: 数据类型描述字符串
+
+    Examples:
+        >>> fmt_str2datatype_str("13s")
+        '13字节-字符'
     """
     if fmt_str[-1] in ("s", "T"):
         count = fmt_str[:-1]
@@ -158,13 +164,15 @@ def fmt_str2datatype_str(fmt_str: str):
 
 
 def head_parser(data, format_str, byte_order=">"):
-    """
-    解析包头
+    """解析包头数据。
 
-    :param data: 二进制数据
-    :param format_str: 格式字符串字典
-    :param byte_order: 字节序，">" 为大端序，"<" 为小端序
-    :return: (解析结果字典, 剩余数据)
+    Args:
+        data (bytes): 二进制数据
+        format_str (dict): 格式字符串字典
+        byte_order (str, optional): 字节序，"<" 小端序，">" 大端序，默认 ">"
+
+    Returns:
+        tuple: (解析结果字典, 剩余数据)
     """
     format_str = byte_order + "".join(format_str.values())
     head_length = struct.calcsize(format_str)
@@ -173,17 +181,22 @@ def head_parser(data, format_str, byte_order=">"):
 
 
 def singel_parser(hex_str, format_str, byte_order=">", fieldmark=None, loglevel=0, fields_rstrip=(), fields_ip=()):
-    """
-    解析单个字段
+    """解析单个字段的二进制数据。
 
-    :param hex_str: 二进制数据
-    :param format_str: 格式字符串
-    :param byte_order: 字节序
-    :param fieldmark: 字段名称
-    :param loglevel: 日志级别，0-详细，1-简洁，3-静默
-    :param fields_rstrip: 需要去空的字段
-    :param fields_ip: 需要转换为IP的字段
-    :return: (解析值, 剩余数据)
+    Args:
+        hex_str (bytes): 二进制数据
+        format_str (str): 格式字符串
+        byte_order (str, optional): 字节序，默认 ">"
+        fieldmark: 字段名称
+        loglevel (int, optional): 日志级别，0-详细，1-简洁，3-静默
+        fields_rstrip (tuple, optional): 需要去空的字段
+        fields_ip (tuple, optional): 需要转换为IP的字段
+
+    Returns:
+        tuple: (解析值, 剩余数据)
+
+    Raises:
+        RuntimeError: 解析失败时抛出
     """
     try:
         T_flag = False
@@ -220,17 +233,22 @@ def singel_parser(hex_str, format_str, byte_order=">", fieldmark=None, loglevel=
 
 
 def content_parser(data, content2format: dict, length=0, loglevel=0, byte_order=">", fields_rstrip=("CommandID"), fields_ip=("s_ip", "d_ip")):
-    """
-    解析内容部分
+    """递归解析内容部分的二进制数据。
 
-    :param data: 二进制数据
-    :param content2format: 格式定义字典
-    :param length: 长度
-    :param loglevel: 日志级别
-    :param byte_order: 字节序
-    :param fields_rstrip: 需要去空的字段
-    :param fields_ip: 需要转换为IP的字段
-    :return: (解析结果字典, 剩余数据)
+    Args:
+        data (bytes): 二进制数据
+        content2format (dict): 格式定义字典
+        length: 长度
+        loglevel (int, optional): 日志级别，默认 0
+        byte_order (str, optional): 字节序，默认 ">"
+        fields_rstrip (tuple, optional): 需要去空的字段
+        fields_ip (tuple, optional): 需要转换为IP的字段
+
+    Returns:
+        tuple: (解析结果字典, 剩余数据)
+
+    Raises:
+        RuntimeError: 遇到不支持的类型时抛出
     """
     res = {}
     for filed, fmt_tmp in content2format.items():
@@ -269,14 +287,16 @@ def content_parser(data, content2format: dict, length=0, loglevel=0, byte_order=
 
 
 def content_parser_with_message_type(data, message_type=b"\x10", loglevel=0, byte_order=">"):
-    """
-    根据消息类型解析内容
+    """根据消息类型解析内容。
 
-    :param data: 二进制数据
-    :param message_type: 消息类型
-    :param loglevel: 日志级别
-    :param byte_order: 字节序
-    :return: (解析结果字典, 剩余数据)
+    Args:
+        data (bytes): 二进制数据
+        message_type (bytes, optional): 消息类型，默认 b"\\x10"
+        loglevel (int, optional): 日志级别，默认 0
+        byte_order (str, optional): 字节序，默认 ">"
+
+    Returns:
+        tuple: (解析结果字典, 剩余数据)
     """
     content2format = content2formats.get(message_type, None)
     if not content2format:
@@ -293,19 +313,25 @@ def content_parser_with_message_type(data, message_type=b"\x10", loglevel=0, byt
 
 
 def bytes_to_str(data, encode="utf-8"):
-    """
-    递归转换bytes到字符串
+    """递归转换 bytes 数据为字符串。
 
-    :param data: 要转换的数据
-    :param encode: 编码格式
-    :return: 转换后的数据
+    Args:
+        data: 要转换的数据，支持 dict、list、tuple、bytes
+        encode (str, optional): 编码格式，默认 utf-8
+
+    Returns:
+        转换后的数据，类型保持一致但 bytes 转为 str
+
+    Examples:
+        >>> bytes_to_str({b'key': b'value'})
+        {'key': 'value'}
     """
     if isinstance(data, dict):
-        return {key: bytes_to_str(value) for key, value in data.items()}
+        return {key: bytes_to_str(value, encode) for key, value in data.items()}
     elif isinstance(data, list):
-        return [bytes_to_str(item) for item in data]
+        return [bytes_to_str(item, encode) for item in data]
     elif isinstance(data, tuple):
-        return tuple(bytes_to_str(item) for item in data)
+        return tuple(bytes_to_str(item, encode) for item in data)
     elif isinstance(data, bytes):
         return data.decode(encode)
     else:
@@ -313,12 +339,19 @@ def bytes_to_str(data, encode="utf-8"):
 
 
 def monitorlog(bin, byte_order='>'):
-    """
-    监控日志解析
+    """解析监控日志二进制文件。
 
-    :param bin: 二进制数据或文件路径
-    :param byte_order: 字节序
-    :return: 解析结果列表
+    Args:
+        bin (str or bytes): 二进制数据或文件路径
+        byte_order (str, optional): 字节序，默认 '>'
+
+    Returns:
+        list: 解析结果列表，每个元素是一条约会记录
+
+    Examples:
+        >>> logs = monitorlog("/path/to/log.bin")
+        >>> print(logs[0]['s_ip'])
+        '192.168.1.100'
     """
     res = list()
     if os.path.exists(bin):

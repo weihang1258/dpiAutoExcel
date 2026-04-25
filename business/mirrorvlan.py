@@ -37,14 +37,13 @@ from scapy.all import rdpcap, wrpcap
 
 
 def mirrorvlan(p_excel: dict, sheets=("mirrorvlan",), path="用例", newpath=None):
-    """
-    处理 MirrorVLAN 镜像VLAN测试
+    """处理 MirrorVLAN 镜像VLAN测试。
 
-    参数:
-        p_excel: Excel解析结果
-        sheets: sheet名称列表
-        path: Excel文件路径
-        newpath: 新Excel文件路径
+    Args:
+        p_excel: Excel 解析结果
+        sheets: sheet 名称列表
+        path: Excel 文件路径
+        newpath: 新 Excel 文件路径
     """
     sheet_name2cases = p_excel["sheet_name2cases"]
     sheet_name2head2col = p_excel["sheet_name2head2col"]

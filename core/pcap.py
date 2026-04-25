@@ -3,7 +3,11 @@
 # @Time    : 2023/9/21 10:14
 # @Author  : weihang
 # @File    : pcap.py
-# @Desc    : PCAP发包工具函数
+# @Desc    : PCAP 发包工具函数
+"""PCAP 发包工具函数模块。
+
+提供使用 scapy 和 tcpreplay 发送 pcap 包的功能。
+"""
 
 import os
 from utils.common import setup_logging
@@ -17,25 +21,24 @@ def pcap_send(client, pcaps, uplink_iface, downlink_iface=None, mbps=50,
               force_ip_src=None, force_ip_dst=None, force_sport=None, force_dport=None,
               force_build_flow=None, enable_pcap_cache=False, pcap_cache_dir="cached_pcaps",
               bufsize=1024):
-    """
-    使用scapy发送pcap包
+    """使用 scapy 发送 pcap 包。
 
     Args:
-        client: SocketLinux客户端或tuple
-        pcaps: pcap文件列表
+        client: SocketLinux 客户端或 tuple
+        pcaps: pcap 文件列表
         uplink_iface: 上行接口
         downlink_iface: 下行接口
-        mbps: 速率 Mbps
-        uplink_vlan: 上行VLAN
-        downlink_vlan: 下行VLAN
+        mbps: 速率(Mbps)，默认 50
+        uplink_vlan: 上行 VLAN
+        downlink_vlan: 下行 VLAN
         verbose: 详细输出
-        force_ip_src: 强制源IP
-        force_ip_dst: 强制目的IP
+        force_ip_src: 强制源 IP
+        force_ip_dst: 强制目的 IP
         force_sport: 强制源端口
         force_dport: 强制目的端口
         force_build_flow: 强制建流
-        enable_pcap_cache: 启用pcap缓存
-        pcap_cache_dir: pcap缓存目录
+        enable_pcap_cache: 启用 pcap 缓存
+        pcap_cache_dir: pcap 缓存目录
         bufsize: 缓冲区大小
     """
     sl = SocketLinux(client) if type(client) == tuple else client
@@ -80,14 +83,13 @@ def pcap_send(client, pcaps, uplink_iface, downlink_iface=None, mbps=50,
 
 
 def tcpreplay(ssh, pcaps, eth, M=None, x=None, p=None, splitflag=None):
-    """
-    使用tcpreplay发送pcap包
+    """使用 tcpreplay 发送 pcap 包。
 
     Args:
-        ssh: SSHManager客户端
-        pcaps: pcap文件列表
+        ssh: SSHManager 客户端
+        pcaps: pcap 文件列表
         eth: 网络接口
-        M: 速率
+        M: 速率 (Mbps)
         x: 倍数
         p: 包速率
         splitflag: 分隔符

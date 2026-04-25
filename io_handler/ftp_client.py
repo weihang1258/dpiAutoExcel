@@ -3,25 +3,51 @@
 # @Time    : 2024/3/11 15:27
 # @Author  : weihang
 # @File    : ftp.py
+"""FTP 客户端模块。
+
+提供 FTP/SFTP 文件上传下载功能，支持 TLS 加密传输。
+"""
+
 import io
 from ftplib import FTP_TLS, FTP
 from utils.common import setup_logging
 
 logger = setup_logging(log_file_path="log/ftp.log", logger_name="ftp")
+
+
 class FTPclient:
+    """FTP 客户端类。
+
+    支持 FTP_TLS 加密连接和普通 FTP 连接。
+    自动尝试 TLS 连接，失败时回退到普通 FTP。
+
+    Attributes:
+        host: FTP 服务器地址
+        user: 用户名
+        passwd: 密码
+        encode: 编码方式
+        ftp: FTP 连接对象
+    """
+
     def __init__(self, host, user, passwd, encode="utf-8"):
+        """初始化 FTP 客户端。
+
+        Args:
+            host: FTP 服务器地址
+            user: 用户名
+            passwd: 密码
+            encode: 编码方式，默认 utf-8
+        """
         self.host = host
         self.user = user
         self.passwd = passwd
         self.encode = encode
         self.connect()
 
-    # def __del__(self):
-    #     self.ftp.quit()
-
     def connect(self):
-        """
-        连接 FTP 服务器
+        """连接 FTP 服务器。
+
+        首先尝试使用 FTP_TLS 加密连接，失败时回退到普通 FTP。
         """
         logger.info(f"Connecting to FTP server: {self.host}, user: {self.user}, encode: {self.encode}")
         try:
@@ -43,9 +69,7 @@ class FTPclient:
                 raise
 
     def close(self):
-        """
-        关闭 FTP 连接，防止资源泄漏
-        """
+        """关闭 FTP 连接，防止资源泄漏。"""
         if self.ftp:
             try:
                 self.ftp.quit()
@@ -56,12 +80,18 @@ class FTPclient:
                 self.ftp = None  # 清除对象，避免重复使用
 
     def __del__(self):
-        """
-        析构函数，确保对象销毁时断开连接
-        """
+        """析构函数，确保对象销毁时断开连接。"""
         self.close()
 
-    def downloadfo(self, remotefile: str):
+    def downloadfo(self, remotefile: str) -> io.BytesIO:
+        """下载远程文件到 BytesIO。
+
+        Args:
+            remotefile: 远程文件路径
+
+        Returns:
+            io.BytesIO: 文件内容
+        """
         dir, name = remotefile.rsplit("/", 1)
         self.ftp.cwd(dir)
         lf = io.BytesIO()
@@ -70,31 +100,52 @@ class FTPclient:
         return lf
 
     def download(self, remotefile: str, localfile: str):
+        """下载远程文件到本地。
+
+        Args:
+            remotefile: 远程文件路径
+            localfile: 本地文件路径
+        """
         lf = self.downloadfo(remotefile=remotefile)
         with open(localfile, "wb") as f:
             f.write(lf.read())
         lf.close()
 
     def uploadfo(self, lf: io.BytesIO, remotefile: str):
+        """上传 BytesIO 到远程文件。
+
+        Args:
+            lf: BytesIO 对象
+            remotefile: 远程文件路径
+        """
         dir, name = remotefile.rsplit("/", 1)
         self.ftp.cwd(dir)
         lf.seek(0)
         self.ftp.storbinary('STOR {}'.format(name), lf)
 
     def upload(self, localfile: str, remotefile: str):
+        """上传本地文件到远程。
+
+        Args:
+            localfile: 本地文件路径
+            remotefile: 远程文件路径
+        """
         with open(localfile, "rb") as lf:
             self.uploadfo(lf=io.BytesIO(lf.read()), remotefile=remotefile)
 
-    def list_dir(self, remotedir: str):
-        """
-        列出 FTP 服务器上指定目录下的文件和子目录
-        :param remotedir: 远程目录路径
-        :return: 包含文件和子目录的列表
+    def list_dir(self, remotedir: str) -> list:
+        """列出 FTP 服务器上指定目录下的文件和子目录。
+
+        Args:
+            remotedir: 远程目录路径
+
+        Returns:
+            list: 包含文件和子目录的列表
         """
         try:
             logger.info(f"Listing directory: {remotedir}")
-            self.ftp.cwd(remotedir)  # 切换到指定目录
-            items = self.ftp.nlst()  # 获取目录下的文件和子目录列表
+            self.ftp.cwd(remotedir)
+            items = self.ftp.nlst()
             return items
         except Exception as e:
             logger.info(f"Error listing directory {remotedir}: {e}")

@@ -11,15 +11,26 @@ from device.socket_linux import SocketLinux, logger
 
 
 class Tcpdump(SocketLinux):
-    def __init__(self, client, eth=None, extended="", tmppath="/home/tmp/tmp.pcap", single_queue=True):
-        """
-        初始化Tcpdump对象
+    """TCP 抓包类。
 
-        :param client: Socket客户端元组 (host, port)
-        :param eth: 网络接口，None则自动获取
-        :param extended: 扩展参数
-        :param tmppath: 临时pcap文件路径
-        :param single_queue: 是否使用单队列模式
+    继承自 SocketLinux，提供远程设备的 TCP 抓包功能。
+
+    Attributes:
+        eth (str): 网络接口名称
+        path (str): 临时 pcap 文件路径
+        extended (str): tcpdump 扩展参数
+        single_queue (bool): 是否使用单队列模式
+    """
+
+    def __init__(self, client, eth=None, extended="", tmppath="/home/tmp/tmp.pcap", single_queue=True):
+        """初始化 Tcpdump 对象。
+
+        Args:
+            client: Socket 客户端元组 (host, port)
+            eth: 网络接口，None 则自动获取
+            extended: 扩展参数
+            tmppath: 临时 pcap 文件路径
+            single_queue: 是否使用单队列模式
         """
         super().__init__(client)
         self.eth = eth
@@ -37,11 +48,13 @@ class Tcpdump(SocketLinux):
             self.eth = self.routeinfo().get("0.0.0.0", {}).get("Iface", None)
 
     def tcpdump_start(self, bufsize=1024):
-        """
-        启动tcpdump抓包
+        """启动 tcpdump 抓包。
 
-        :param bufsize: 接收缓冲区大小
-        :return: 命令执行结果
+        Args:
+            bufsize: 接收缓冲区大小
+
+        Returns:
+            dict: 命令执行结果
         """
         self.tcpdump_stop()
         data = {"eth": self.eth, "path": self.path, "extended": self.extended, "single_queue": self.single_queue}
@@ -54,11 +67,13 @@ class Tcpdump(SocketLinux):
         return data["res"]
 
     def tcpdump_stop(self, bufsize=1024):
-        """
-        停止tcpdump抓包
+        """停止 tcpdump 抓包。
 
-        :param bufsize: 接收缓冲区大小
-        :return: 命令执行结果
+        Args:
+            bufsize: 接收缓冲区大小
+
+        Returns:
+            dict: 命令执行结果
         """
         data = {"path": self.path}
         msg = struct.pack("i", 6) + json.dumps(obj=data).encode("utf-8")
@@ -69,19 +84,19 @@ class Tcpdump(SocketLinux):
         return data["res"]
 
     def pcap_get(self, locatpath):
-        """
-        获取pcap文件到本地
+        """获取 pcap 文件到本地。
 
-        :param locatpath: 本地保存路径
+        Args:
+            locatpath: 本地保存路径
         """
         logger.info([self.path, locatpath])
         self.get(remotepath=self.path, locatpath=locatpath, gzip=True)
 
     def pcap_getfo(self):
-        """
-        获取pcap文件对象
+        """获取 pcap 文件对象。
 
-        :return: pcap文件内容
+        Returns:
+            BytesIO: pcap 文件内容
         """
         return self.getfo(remotepath=self.path, gzip=True)
 

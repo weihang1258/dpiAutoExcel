@@ -28,12 +28,36 @@ def ssh_tunnel(host, port, username, password, remote_host, remote_port, allow_a
     return server
 
 
-class VerificationSsh(object):
-    """
-     :param tunnel_config: ssh隧道，格式如：[{"host":host, "port":port, "username":username, "password":password}]
+class VerificationSsh:
+    """SSH 客户端，用于与远程 Linux 设备建立 SSH 连接并执行命令。
+
+    支持普通用户登录和 root 权限切换，支持 SSH 隧道配置。
+
+    Attributes:
+        host (str): 远程主机地址
+        username (str): SSH 用户名
+        password (str): SSH 密码
+        port (int): SSH 端口
+        root_pwd (str): root 密码（用于权限提升）
+        c: Paramiko Channel 对象，用于执行命令
+
+    Examples:
+        >>> ssh = VerificationSsh("192.168.1.100", "user", "pass", 22)
+        >>> result = ssh.channel_exec_cmd("ls -la")
     """
 
     def __init__(self, host, username, password, port, root_pwd=None, tunnel_configs: list = None):
+        """初始化 SSH 客户端。
+
+        Args:
+            host: 远程主机地址
+            username: SSH 用户名
+            password: SSH 密码
+            port: SSH 端口
+            root_pwd: root 密码（用于权限提升）
+            tunnel_configs: SSH 隧道配置列表，
+                格式如 [{"host": host, "port": port, "username": username, "password": password}]
+        """
         self.host = host
         self.username = username
         self.password = password
@@ -141,7 +165,11 @@ class VerificationSsh(object):
 
 
     def chanel(self) -> paramiko.channel.Channel:
-        # logging.raiseExceptions = False
+        """创建 SSH Channel 并建立连接。
+
+        Returns:
+            paramiko.channel.Channel: SSH Channel 对象
+        """
         self.ssh = paramiko.SSHClient()
         self.ssh.load_system_host_keys()
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -195,8 +223,20 @@ class VerificationSsh(object):
 
 
 class SSHManager(object):
+    """SSH 连接管理器。
+
+    简化版的 SSH 客户端，用于执行远程命令。
+
+    Attributes:
+        host (str): 远程主机地址
+        user (str): SSH 用户名
+        passwd (str): SSH 密码
+        port (int): SSH 端口
+        root_pwd (str): root 密码
+        ssh: Paramiko SSHClient 对象
+    """
+
     def __init__(self, host, user=None, passwd=None, port=22, root_pwd=None, tunnel_config: dict = None):
-        """
         建ssh连接
         :param host:
         :param user:
