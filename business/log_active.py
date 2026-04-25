@@ -14,7 +14,7 @@ import datetime
 import io
 import re
 import time
-from utils.common import logger, gettime
+from utils.common import gettime, setup_logging
 from core.excel_reader import parser_excel, casename2exp_log, act_log
 from core.comparer import compare_exp
 from core.result import result_deal
@@ -30,6 +30,8 @@ from device.dpi_constants import (
     commoninfo_rulefile, eu_active_resource_rulefile, pcip_ipsegsfile, fz_block_rulefile,
     action2policyfile, provinceId2provID
 )
+
+logger = setup_logging(log_file_path="log/log_active.log", logger_name="log_active")
 
 
 def log_active(p_excel: dict, sheets_sendpkt, sheets_actdomain_list, path="用例", newpath=None):

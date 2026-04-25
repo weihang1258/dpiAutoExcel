@@ -16,7 +16,7 @@ import random
 import re
 import time
 from itertools import chain
-from utils.common import logger, gettime, wait_until, wait_not_until, get_flow_timeout
+from utils.common import gettime, wait_until, wait_not_until, get_flow_timeout, setup_logging
 from core.excel_reader import parser_excel, casename2exp_log, act_log
 from core.result import result_deal
 from device.socket_linux import SocketLinux
@@ -34,6 +34,8 @@ from device.dpi_constants import (
     action2policyfile, src2logtype
 )
 from scapy.all import rdpcap, wrpcap
+
+logger = setup_logging(log_file_path="log/mirrorvlan.log", logger_name="mirrorvlan")
 
 
 def mirrorvlan(p_excel: dict, sheets=("mirrorvlan",), path="用例", newpath=None):

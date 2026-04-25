@@ -17,7 +17,7 @@ import json
 import os
 import re
 import time
-from utils.common import logger, gettime, get_flow_timeout, wait_until, wait_not_until
+from utils.common import gettime, get_flow_timeout, wait_until, wait_not_until, setup_logging
 from utils.log_parser import monitorlog
 from core.excel_reader import parser_excel, casename2exp_log, act_log
 from core.comparer import compare_exp
@@ -37,6 +37,8 @@ from device.dpi_constants import (
     overseaip_ipsegsfile, xdr_filter_rulefile,
     action2policyfile, src2logtype
 )
+
+logger = setup_logging(log_file_path="log/log_key.log", logger_name="log_key")
 
 # provinceId2provID,省ID到省份ID映射
 provinceId2provID = {"11": "100", "44": "200", "31": "210", "12": "220", "50": "230", "21": "240", "32": "250",

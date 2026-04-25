@@ -5,6 +5,10 @@
 # @File    : dpi_helper.py
 # @Desc    : DPI设备初始化和配置工具函数
 
+from utils.common import setup_logging
+
+logger = setup_logging(log_file_path="log/dpi_helper.log", logger_name="dpi_helper")
+
 
 def dpi_init(dpi, xsa_json=None, mod_cfg=None, xdr_template_pattern=None):
     """初始化 DPI 设备配置。

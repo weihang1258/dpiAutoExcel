@@ -4,6 +4,9 @@ import xml.etree.ElementTree as ET
 from collections.abc import MutableMapping, MutableSequence
 from datetime import datetime
 from utils.ini_handler import extract_field_paths
+from utils.common import setup_logging
+
+logger = setup_logging(log_file_path="log/xml_comparer.log", logger_name="xml_comparer")
 
 
 class XMLComparer:

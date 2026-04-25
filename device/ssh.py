@@ -8,8 +8,10 @@ import time
 from functools import reduce
 
 import paramiko
-from utils.common import wait_until, get_port_unused
+from utils.common import wait_until, get_port_unused, setup_logging
 from sshtunnel import SSHTunnelForwarder
+
+logger = setup_logging(log_file_path="log/ssh.log", logger_name="ssh")
 
 
 def ssh_tunnel(host, port, username, password, remote_host, remote_port, allow_agent=False):

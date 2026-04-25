@@ -6,8 +6,10 @@
 import logging
 import os
 
-from utils.common import list_rstrip
+from utils.common import list_rstrip, setup_logging
 from io_handler.excel import Excel
+
+logger = setup_logging(log_file_path="log/excel_reader.log", logger_name="excel_reader")
 # from comm import compare_exp
 
 

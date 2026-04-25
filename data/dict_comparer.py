@@ -4,6 +4,9 @@ from collections.abc import MutableMapping, MutableSequence
 from datetime import datetime
 from collections import OrderedDict
 from utils.ini_handler import extract_field_paths
+from utils.common import setup_logging
+
+logger = setup_logging(log_file_path="log/dict_comparer.log", logger_name="dict_comparer")
 
 
 class DictComparer:

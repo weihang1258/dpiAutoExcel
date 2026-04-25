@@ -15,7 +15,9 @@ import sys
 import time
 import xlwings
 
-from utils.common import convert_unit_string
+from utils.common import convert_unit_string, setup_logging
+
+logger = setup_logging(log_file_path="log/excel.log", logger_name="excel_io")
 
 
 class Excel:

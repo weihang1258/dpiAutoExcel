@@ -69,7 +69,7 @@ def keep_console_alive(logger, interval=10):
     heartbeat_thread.start()
     return heartbeat_thread
 
-def setup_logging(log_file_path, logger_name, encoding="utf-8", keep_alive=False, heartbeat_interval=10):
+def setup_logging(log_file_path, logger_name, encoding="utf-8", keep_alive=False, heartbeat_interval=10, mode='a'):
     """配置日志记录器，支持文件和终端双输出。
 
     Args:
@@ -78,6 +78,7 @@ def setup_logging(log_file_path, logger_name, encoding="utf-8", keep_alive=False
         encoding (str, optional): 日志文件编码，默认 utf-8
         keep_alive (bool, optional): 是否启动心跳线程保持控制台，默认 False
         heartbeat_interval (int, optional): 心跳间隔秒数，默认 10
+        mode (str, optional): 文件写入模式，默认 'a'（追加模式），可设为 'w'（覆盖模式）
 
     Returns:
         logging.Logger: 配置好的日志记录器实例
@@ -95,11 +96,6 @@ def setup_logging(log_file_path, logger_name, encoding="utf-8", keep_alive=False
         if dirname and not os.path.isdir(dirname):
             os.makedirs(dirname)
 
-        # 清空已存在的日志文件
-        if os.path.exists(log_file_path):
-            with open(log_file_path, 'w', encoding=encoding) as f:
-                f.write("")
-
         # 创建日志记录器
         logger = logging.getLogger(logger_name)
         logger.setLevel(logging.DEBUG)
@@ -111,8 +107,8 @@ def setup_logging(log_file_path, logger_name, encoding="utf-8", keep_alive=False
         if logger.handlers:
             logger.handlers.clear()
 
-        # 文件处理器配置
-        file_handler = logging.FileHandler(log_file_path, encoding=encoding)
+        # 文件处理器配置（默认追加模式，保留历史日志）
+        file_handler = logging.FileHandler(log_file_path, encoding=encoding, mode=mode)
         file_handler.setLevel(logging.DEBUG)
         file_format = logging.Formatter(LOG_FORMAT, datefmt=LOG_DATE_FORMAT)
         file_handler.setFormatter(file_format)

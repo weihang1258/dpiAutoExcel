@@ -16,7 +16,7 @@ import json
 import random
 import re
 import time
-from utils.common import logger, gettime, wait_until, wait_not_until
+from utils.common import gettime, wait_until, wait_not_until, setup_logging
 from core.excel_reader import parser_excel, casename2exp_log, act_log
 from core.comparer import compare_exp
 from core.result import result_deal
@@ -34,6 +34,8 @@ from device.dpi_constants import (
     commoninfo_rulefile, access_log_rulefile, pcip_ipsegsfile, xsa_jsonfile, fz_block_rulefile,
     action2policyfile, src2logtype, provinceId2provID
 )
+
+logger = setup_logging(log_file_path="log/log_audit.log", logger_name="log_audit")
 
 
 def log_audit(p_excel: dict, sheets, path="用例", newpath=None):

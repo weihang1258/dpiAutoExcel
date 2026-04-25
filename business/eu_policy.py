@@ -15,7 +15,7 @@ import io
 import os
 import re
 import time
-from utils.common import logger, wait_until, get_flow_timeout
+from utils.common import wait_until, get_flow_timeout, setup_logging
 from core.result import result_deal
 from device.dpi import Dpi
 from monitor.dpistat import CheckDpiStat
@@ -30,6 +30,8 @@ from device.dpi_constants import (
     ydcommoninfo_rulefile, commoninfo_rulefile, xsa_jsonfile, fz_block_rulefile,
     action2policyfile, fz_action_txtfile, fz_template_txtfile
 )
+
+logger = setup_logging(log_file_path="log/eu_policy.log", logger_name="eu_policy")
 
 
 def eu_policy(p_excel: dict, sheets=("eu_policy",), path="用例", newpath=None):

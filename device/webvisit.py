@@ -9,6 +9,9 @@ import time
 import json
 import struct
 from device.socket_linux import SocketLinux
+from utils.common import setup_logging
+
+logger = setup_logging(log_file_path="log/webvisit.log", logger_name="webvisit")
 
 
 class Webvisit(SocketLinux):

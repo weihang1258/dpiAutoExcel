@@ -13,6 +13,9 @@ import json
 import re
 from datetime import datetime
 from playwright.sync_api import sync_playwright, Page
+from utils.common import setup_logging
+
+logger = setup_logging(log_file_path="log/rdm_extractor.log", logger_name="rdm_extractor")
 from bs4 import BeautifulSoup
 
 

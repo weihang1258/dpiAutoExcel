@@ -15,7 +15,7 @@ import io
 import os
 import re
 import time
-from utils.common import logger, gettime, wait_until, wait_not_until
+from utils.common import gettime, wait_until, wait_not_until, setup_logging
 from core.result import result_deal
 from device.socket_linux import SocketLinux
 from device.dpi import Dpi
@@ -30,9 +30,9 @@ from device.dpi_constants import (
     comon_inifile, ydcommoninfo_rulefile, commoninfo_rulefile, fz_block_rulefile,
     action2policyfile
 )
-
-
 from protocol.pcap_analyzer import compare_pcap, Pcap2Flowtable, FlowTable
+
+logger = setup_logging(log_file_path="log/pcapdump.log", logger_name="pcapdump")
 
 
 def pcapdump(p_excel: dict, sheets=("pcapdump",), path="用例", newpath=None):

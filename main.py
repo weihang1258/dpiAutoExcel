@@ -5,6 +5,7 @@ from glob import glob
 import time
 import datetime
 from utils.common import logger, gettime
+from utils.log_config import get_session_id, ensure_log_dir
 from business.install import install
 from business.log_key import log_key
 from business.log_audit import log_audit
@@ -15,6 +16,13 @@ from business.pcapdump import pcapdump
 from business.bzip import bzip
 from io_handler.excel import Excel
 from core.excel_reader import parser_excel
+
+# 确保日志目录存在
+ensure_log_dir()
+
+# 生成会话 ID（用于日志文件命名）
+SESSION_ID = get_session_id()
+logger.info(f"会话 ID: {SESSION_ID}")
 
 
 # =============================================================================

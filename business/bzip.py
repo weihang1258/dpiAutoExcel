@@ -16,7 +16,7 @@ import random
 import re
 import time
 from itertools import chain
-from utils.common import logger, gettime, wait_until, wait_not_until, get_flow_timeout, IPRangeSet
+from utils.common import gettime, wait_until, wait_not_until, get_flow_timeout, IPRangeSet, setup_logging
 from core.result import result_deal
 from device.socket_linux import SocketLinux
 from device.dpi import Dpi
@@ -34,6 +34,8 @@ from device.dpi_constants import (
     access_log_rulefile, xsa_jsonfile, fz_block_rulefile,
     action2policyfile, provinceId2provID, bzip_ipsegsfile
 )
+
+logger = setup_logging(log_file_path="log/bzip.log", logger_name="bzip")
 
 
 def bzip(p_excel: dict, sheets, path="用例", newpath=None):
