@@ -239,7 +239,7 @@ class SSHManager(object):
     """
 
     def __init__(self, host, user=None, passwd=None, port=22, root_pwd=None, tunnel_config: dict = None):
-        建ssh连接
+        """建立ssh连接
         :param host:
         :param user:
         :param passwd:

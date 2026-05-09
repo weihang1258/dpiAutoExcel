@@ -16,21 +16,6 @@ from datetime import datetime
 # 日志目录（相对于项目根目录）
 LOG_DIR = "log"
 
-# 日志拆分策略
-LOG_STRATEGY = {
-    # 按 sheet 名称映射策略
-    "install": "by_case",      # 按用例拆分
-    "upgrade": "by_sheet",     # 按 sheet 拆分
-    "log_active": "by_case",
-    "log_audit": "by_sheet",
-    "log_key": "by_case",
-    "pcapdump": "by_case",
-    "eu_policy": "by_case",
-    "mirrorvlan": "by_case",
-    "bzip": "by_case",
-    "default": "by_case"       # 默认按用例拆分
-}
-
 # 日志轮转配置
 LOG_ROTATION = {
     "enabled": True,
@@ -68,18 +53,6 @@ def get_session_id():
     return datetime.now().strftime('%Y%m%d%H%M%S')
 
 
-def get_log_strategy(sheet_name):
-    """获取指定 sheet 的日志拆分策略
-
-    Args:
-        sheet_name: sheet 名称
-
-    Returns:
-        str: 策略名称，"by_case" 或 "by_sheet"
-    """
-    return LOG_STRATEGY.get(sheet_name, LOG_STRATEGY["default"])
-
-
 def ensure_log_dir():
     """确保日志目录存在
 
@@ -110,21 +83,18 @@ def sanitize_case_name(case_name):
     return sanitized
 
 
-def build_log_filename(session_id, sheet_name, case_name=None, strategy=None):
+def build_log_filename(session_id, sheet_name, case_name=None, strategy="by_case"):
     """构建日志文件名
 
     Args:
         session_id: 会话 ID
         sheet_name: sheet 名称
         case_name: 用例名称（可选）
-        strategy: 拆分策略，默认根据 sheet_name 自动获取
+        strategy: 拆分策略，默认 "by_case"
 
     Returns:
         str: 日志文件名
     """
-    if strategy is None:
-        strategy = get_log_strategy(sheet_name)
-
     if strategy == "by_case" and case_name:
         safe_case_name = sanitize_case_name(case_name)
         return f"{session_id}_{sheet_name}_{safe_case_name}.log"

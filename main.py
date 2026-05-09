@@ -30,19 +30,24 @@ logger.info(f"会话 ID: {SESSION_ID}")
 # =============================================================================
 
 class SheetHandler:
-    """Sheet 处理器基类"""
+    """Sheet 处理器基类
+
+    每个业务函数模块（install, log_key 等）都定义了自己的 LOG_STRATEGY 常量，
+    用于指定日志拆分策略。Handler 调用业务函数时使用其默认参数值。
+    """
 
     def __init__(self, handler_func, group_name=None):
         self.handler_func = handler_func
         self.group_name = group_name
 
-    def execute(self, p_excel, sheet_name, get_s_excel_path, path_save, tmp_sheets=None):
+    def execute(self, p_excel, sheet_name, get_s_excel_path, path_save, tmp_sheets=None, session_id=None):
         """执行处理函数"""
         kwargs = {
             'p_excel': p_excel,
             'sheets': [sheet_name],
             'path': get_s_excel_path(),
-            'newpath': path_save
+            'newpath': path_save,
+            'session_id': session_id,
         }
 
         # 特殊 sheet 需要额外参数
@@ -359,10 +364,6 @@ def run(excel_path, sheet=None):
     :param excel_path: Excel 文件路径
     :param sheet: 指定执行的 sheet 名称（可选）
     """
-    # 生成会话ID
-    session_id = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-    logger.info(f"会话ID: {session_id}")
-
     try:
         p_excel = parser_excel(path=excel_path)
         excel_base, excel_name = os.path.split(excel_path)
@@ -385,7 +386,7 @@ def run(excel_path, sheet=None):
         else:
             tmp_sheets = _get_executable_sheets(p_excel)
 
-        sheet_name2minutes = dict()
+        sheet_name2seconds = dict()
 
         for sheet_name in tmp_sheets:
             # 跳过不需要处理的 sheet
@@ -405,7 +406,8 @@ def run(excel_path, sheet=None):
                         sheet_name=sheet_name,
                         get_s_excel_path=get_s_excel_path,
                         path_save=path_save,
-                        tmp_sheets=tmp_sheets if sheet_name == "actdomain发包" else None
+                        tmp_sheets=tmp_sheets if sheet_name == "actdomain发包" else None,
+                        session_id=SESSION_ID
                     )
                 except Exception as e:
                     import traceback
@@ -418,18 +420,15 @@ def run(excel_path, sheet=None):
             end_time = time.time()
             # 计算耗时（单位：秒）
             duration = end_time - start_time
-            # 转换为小时和分钟
-            hours = int(duration // 3600)
-            minutes = int((duration % 3600) // 60)
-            logger.info(f"sheet:{sheet_name}，执行耗时：{hours} 小时 {minutes} 分钟")
-            cur_minutes = int(duration // 60)
-            sheet_name2minutes[sheet_name] = cur_minutes
+            seconds = int(duration)
+            logger.info(f"sheet:{sheet_name}，执行耗时：{_format_duration(seconds)}")
+            sheet_name2seconds[sheet_name] = seconds
 
         # 删除多余的 sheet
         _cleanup_report_sheets(path_save, tmp_sheets)
 
         # 统计用例执行情况并添加到结果统计 sheet 中
-        _generate_statistics(path_save, sheet_name2minutes)
+        _generate_statistics(path_save, sheet_name2seconds)
 
     finally:
         logger.info("测试执行完成")
@@ -491,12 +490,27 @@ def _cleanup_report_sheets(path_save, tmp_sheets):
                 pass
 
 
-def _generate_statistics(path_save, sheet_name2minutes):
+def _format_duration(seconds):
+    """将秒数格式化为可读的时间字符串，只显示有效单位。"""
+    h = seconds // 3600
+    m = (seconds % 3600) // 60
+    s = seconds % 60
+    parts = []
+    if h:
+        parts.append(f"{h} 小时")
+    if m:
+        parts.append(f"{m} 分钟")
+    if s or not parts:
+        parts.append(f"{s} 秒")
+    return " ".join(parts)
+
+
+def _generate_statistics(path_save, sheet_name2seconds):
     """
     生成执行统计
 
     :param path_save: 报告保存路径
-    :param sheet_name2minutes: sheet 名称到执行分钟的映射
+    :param sheet_name2seconds: sheet 名称到执行秒数的映射
     """
     logger.info("统计用例执行情况")
     p1_excel = parser_excel(path=path_save)
@@ -510,20 +524,19 @@ def _generate_statistics(path_save, sheet_name2minutes):
         success_rate = count_pass / count_exe if count_exe else 0.0
         statistics_list.append(
             [sheet_name, count_exe, count_pass, count_fail, count_noresult, f"{success_rate:.2%}",
-             f"{sheet_name2minutes.get(sheet_name, 0)} 分钟"])
+             _format_duration(sheet_name2seconds.get(sheet_name, 0))])
         logger.info(
             f"sheet:{sheet_name}\tcount_exe:{count_exe}\tcount_pass:{count_pass}\t"
             f"count_fail:{count_fail}\tcount_noresult:{count_noresult}\tsuccess_rate:{success_rate:.2%}")
 
     # 计算总耗时
-    total_minutes = sum(sheet_name2minutes.values())
-    hours = int(total_minutes * 60 // 3600)
-    minutes = int(((total_minutes * 60) % 3600) // 60)
-    logger.info(f"执行总耗时：{hours} 小时 {minutes} 分钟")
+    total_seconds = sum(sheet_name2seconds.values())
+    total_duration = _format_duration(total_seconds)
+    logger.info(f"执行总耗时：{total_duration}")
 
     # 写入统计结果
     header = [["sheet", "执行数量", "成功数量", "失败数量", "未执行数量", "成功率", "执行时间"]]
-    footer = [["", "", "", "", "", "", f"{hours} 小时 {minutes} 分钟"]]
+    footer = [["", "", "", "", "", "", total_duration]]
     statistics_list = header + statistics_list + footer
 
     xlsx.write_range_values(sheet_index="结果统计", value=statistics_list, row1=0, col1=0)
@@ -577,4 +590,5 @@ if __name__ == '__main__':
     elif args.file:
         run(excel_path=args.file, sheet=args.sheet)
     else:
-        run(excel_path="用例_移动_1060.xlsx", sheet="block")
+        run(excel_path="用例_电信_1060.xlsx", sheet=None)
+        # run(excel_path="用例_升级.xlsx", sheet="install")

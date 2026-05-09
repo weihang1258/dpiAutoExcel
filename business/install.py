@@ -20,6 +20,7 @@ import logging
 from core.result import result_deal
 from core.excel_reader import parser_excel
 from utils.common import gettime, setup_logging, get_base_dir
+from utils.log_config import build_log_filename, sanitize_case_name
 from device.dpi import Dpi
 from io_handler.ftp_client import FTPclient
 from utils.log_handler import DynamicFileHandler
@@ -34,6 +35,9 @@ import device.socket_linux as socket_linux
 
 # 添加日志打印
 logger = setup_logging(log_file_path="log/install.log", logger_name="install")
+
+# 日志策略：by_case=按用例拆分，by_sheet=按 sheet 拆分
+LOG_STRATEGY = "by_case"
 
 
 def get_display_width(text):
@@ -55,23 +59,6 @@ def get_display_width(text):
         else:
             width += 1
     return width
-
-
-def sanitize_case_name(case_name):
-    """清理用例名称，移除或替换文件系统不支持的字段。
-
-    Args:
-        case_name: 原始用例名称
-
-    Returns:
-        str: 清理后的用例名称
-    """
-    # 替换特殊字符为下划线（包括换行符、制表符等）
-    sanitized = re.sub(r'[<>:"/\\|?*\r\n\t]', '_', case_name)
-    # 限制文件名长度（Windows 限制 255 字符，留出余量给前缀和后缀）
-    if len(sanitized) > 200:
-        sanitized = sanitized[:200]
-    return sanitized
 
 
 def print_case_separator(case_name, logger, log_file=None):
@@ -807,13 +794,11 @@ def dpi_install(
             )
             logger.info(f"  ✓ 第二层解压完成")
 
-    # 定位升级脚本路径（根据配置）
+    # 定位安装脚本路径（upms_install.sh 始终在第二层）
     upgrade_script_layer = version_config['script_location']['upgrade']
     if upgrade_script_layer == 2:
         upms_install_file = f"{outdir2}/upms_install.sh"
-    else:
-        upms_install_file = f"{outdir3}/upms_install.sh"
-    logger.info(f"→ 升级脚本路径：{upms_install_file}")
+        logger.info(f"→ 升级脚本路径：{upms_install_file}")
 
     # ==================== 第四阶段：执行安装/升级 ====================
     action = '升级' if upms else '全新安装'
@@ -908,7 +893,7 @@ def dpi_install(
     return result
 
 
-def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", newpath: str = None, versions_json: str = None, mod_switch_version: str = "idc31", session_id: str = None, log_strategy: str = "by_case") -> None:
+def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", newpath: str = None, versions_json: str = None, mod_switch_version: str = "idc31", session_id: str = None, log_strategy: str = LOG_STRATEGY) -> None:
     """
     基于 Excel 用例执行批量安装/升级测试
 
@@ -1286,6 +1271,10 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
                     if installtype == "全新安装":
                         logger.info("")
                         logger.info("▶ 执行全新安装")
+
+                        # 安装前统一关闭 agent
+                        logger.info("→ 安装前关闭 agent...")
+                        xsa.stop_agent()
 
                         # 获取目标版本的 FTP 路径
                         try:
@@ -1675,11 +1664,15 @@ def install(p_excel: dict, sheets: tuple = ("install",), path: str = "用例", n
             logger.info(f"关闭 Sheet {sheet_name} 的日志处理器")
             dynamic_handler.close()
 
-            # 从所有模块的 logger 中移除 handler
+            # 从所有模块的 logger 中移除所有 FileHandler
             for module in modules:
                 if hasattr(module, 'logger'):
-                    module.logger.removeHandler(dynamic_handler)
-            logger.removeHandler(dynamic_handler)
+                    for handler in module.logger.handlers[:]:
+                        if isinstance(handler, logging.FileHandler):
+                            module.logger.removeHandler(handler)
+            for handler in logger.handlers[:]:
+                if isinstance(handler, logging.FileHandler):
+                    logger.removeHandler(handler)
 
     # 关闭连接
     xsa.client.close()

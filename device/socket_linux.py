@@ -56,8 +56,12 @@ class SocketLinux:
         Args:
             client: socket.socket 对象或 (host, port) 元组
         """
-
-
+        if isinstance(client, tuple):
+            self.host, self.port = client
+            self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.client.connect(client)
+        else:
+            self.client = client
 
     def __del__(self):
         try:

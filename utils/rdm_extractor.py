@@ -23,7 +23,7 @@ def get_base_dir():
     """获取程序基准目录，兼容 PyInstaller exe 和源码运行两种模式"""
     if getattr(sys, 'frozen', False):
         return os.path.dirname(sys.executable)
-    return os.path.dirname(os.path.abspath(__file__))
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def get_release_path_info(

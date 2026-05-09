@@ -574,10 +574,17 @@ class Dpi(SocketLinux):
         """获取dpi版本"""
         cmd = f"cat ver.txt |head -n 1"
         response = self.cmd(cmd, cwd=dpipath).strip()
+        if not response:
+            logger.warning(f"获取 DPI 版本失败：命令返回为空，dpipath={dpipath}")
+            return None
         if ":" in response:
             return response.split(":")[-1].strip().lstrip("V")
         else:
-            return response.split()[-1].strip().lstrip("V")
+            parts = response.split()
+            if not parts:
+                logger.warning(f"获取 DPI 版本失败：无法解析版本字符串 '{response}'")
+                return None
+            return parts[-1].strip().lstrip("V")
 
     def get_pcicfg(self):
         """获取pcip配置信息"""

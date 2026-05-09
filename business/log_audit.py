@@ -13,10 +13,14 @@ import copy
 import datetime
 import io
 import json
+import logging
+import os
 import random
 import re
 import time
 from utils.common import gettime, wait_until, wait_not_until, setup_logging
+from utils.log_handler import DynamicFileHandler
+from utils.log_config import build_log_filename
 from core.excel_reader import parser_excel, casename2exp_log, act_log
 from core.comparer import compare_exp
 from core.result import result_deal
@@ -37,8 +41,17 @@ from device.dpi_constants import (
 
 logger = setup_logging(log_file_path="log/log_audit.log", logger_name="log_audit")
 
+# 日志策略：by_case=按用例拆分，by_sheet=按 sheet 拆分
+LOG_STRATEGY = "by_sheet"
 
-def log_audit(p_excel: dict, sheets, path="用例", newpath=None):
+# 导入需要添加 DynamicFileHandler 的模块
+import device.socket_linux as socket_linux_module
+import monitor.dpistat as dpistat_module
+import device.dpi as dpi_module
+import core.result as result_module
+
+
+def log_audit(p_excel: dict, sheets, path="用例", newpath=None, session_id: str = None, log_strategy: str = LOG_STRATEGY):
     """处理审计日志测试。
 
     Args:
@@ -66,13 +79,52 @@ def log_audit(p_excel: dict, sheets, path="用例", newpath=None):
     dpi_xdr = Dpi(socket_xdr)
     stat_dpi_xsa = CheckDpiStat(socket_xsa)
 
+    # 检查 session_id，如果为空则自动生成
+    if session_id is None:
+        session_id = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        logger.warning(f"session_id 为空，自动生成：{session_id}")
+
     # 获取流超时时间
     timeout_flow = dpi_xsa.json_get(path="/opt/dpi/xsaconf/xsa.json")["flow"]["idle_timeout_ms"]
+
+    # ==================== 创建 DynamicFileHandler ====================
+    modules = [logserver, dpi_xsa, dpi_xdr, stat_dpi_xsa,
+               dpi_module, socket_linux_module, dpistat_module, result_module]
+
+    # 创建 DynamicFileHandler
+    dynamic_handler = DynamicFileHandler(log_dir="log", level=logging.DEBUG)
+
+    # 确保日志目录存在
+    log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "log")
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+
+    # 添加到所有模块的 logger
+    for module in modules:
+        if hasattr(module, 'logger'):
+            for handler in module.logger.handlers[:]:
+                if isinstance(handler, logging.FileHandler):
+                    module.logger.removeHandler(handler)
+            module.logger.addHandler(dynamic_handler)
+
+    # 为当前模块也添加 handler
+    handlers_to_remove = []
+    for handler in logger.handlers[:]:
+        if isinstance(handler, logging.FileHandler):
+            handlers_to_remove.append(handler)
+    for handler in handlers_to_remove:
+        logger.removeHandler(handler)
+    logger.addHandler(dynamic_handler)
 
     # 执行用例
     counter = 1
 
     for sheet_name in sheets:
+        # 根据策略创建日志文件
+        log_file = build_log_filename(session_id, sheet_name, strategy=log_strategy)
+        dynamic_handler.switch_file(log_file)
+        logger.info(f"日志文件：{log_file}")
+
         logger.info(f"---------------------开始执行excel：{path}，sheet：{sheet_name}---------------------")
         if sheet_name != sheets[0]:
             path = newpath
@@ -684,6 +736,17 @@ def log_audit(p_excel: dict, sheets, path="用例", newpath=None):
             row=1, head2col=sheet_name2head2col[sheet_name],
             mark=[], only_write=True, newpath=newpath
         )
+
+    # ==================== 清理 DynamicFileHandler ====================
+    dynamic_handler.close()
+    for module in modules:
+        if hasattr(module, 'logger'):
+            for handler in module.logger.handlers[:]:
+                if isinstance(handler, logging.FileHandler):
+                    module.logger.removeHandler(handler)
+    for handler in logger.handlers[:]:
+        if isinstance(handler, logging.FileHandler):
+            logger.removeHandler(handler)
 
     logserver.client.close()
     dpi_xsa.client.close()

@@ -40,7 +40,7 @@ def get_base_dir():
     if getattr(sys, 'frozen', False):
         # exe 模式：exe 文件所在目录（兼容 onefile 和 onedir）
         return os.path.dirname(sys.executable)
-    return os.path.dirname(os.path.abspath(__file__))
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def keep_console_alive(logger, interval=10):
@@ -73,7 +73,7 @@ def setup_logging(log_file_path, logger_name, encoding="utf-8", keep_alive=False
     """配置日志记录器，支持文件和终端双输出。
 
     Args:
-        log_file_path (str): 日志文件路径
+        log_file_path (str): 日志文件路径，支持相对路径（相对于项目根目录）
         logger_name (str): 日志记录器名称
         encoding (str, optional): 日志文件编码，默认 utf-8
         keep_alive (bool, optional): 是否启动心跳线程保持控制台，默认 False
@@ -91,6 +91,10 @@ def setup_logging(log_file_path, logger_name, encoding="utf-8", keep_alive=False
         >>> logger.info("Hello world")
     """
     try:
+        # 如果是相对路径，自动使用项目根目录作为基准路径
+        if not os.path.isabs(log_file_path):
+            log_file_path = os.path.join(get_base_dir(), log_file_path)
+
         # 创建日志目录
         dirname = os.path.dirname(log_file_path)
         if dirname and not os.path.isdir(dirname):
@@ -212,6 +216,12 @@ def list_rstrip(mylist: list, flags=(None,)):
         >>> list_rstrip(lst, flags=(None,))
         [1, 2, None, 3]
     """
+    for i in range(len(mylist) - 1, -1, -1):
+        if mylist[i] in flags:
+            mylist.pop(-1)
+        else:
+            return mylist
+    return mylist
 
 
 def list_split_by_unit(mylist: list, count):

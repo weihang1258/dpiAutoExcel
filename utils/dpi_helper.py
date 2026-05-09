@@ -6,6 +6,7 @@
 # @Desc    : DPI设备初始化和配置工具函数
 
 from utils.common import setup_logging
+import time
 
 logger = setup_logging(log_file_path="log/dpi_helper.log", logger_name="dpi_helper")
 
@@ -89,6 +90,7 @@ def dpi_init(dpi, xsa_json=None, mod_cfg=None, xdr_template_pattern=None):
     if xdr_template_pattern:
         from utils.common import logger
         xdr_template_dict = dpi.json_get(path="/opt/dpi/xdrconf/rule/xdr_template.json")
+        tmp_dict = dict()
         for k, v in xdr_template_pattern.items():
             if "." in k:
                 templete, xieyiname, key = k.split(".")
@@ -96,10 +98,25 @@ def dpi_init(dpi, xsa_json=None, mod_cfg=None, xdr_template_pattern=None):
                     if xdr_template_dict["pattern"][i]["templete"] == templete and xdr_template_dict["pattern"][i]["xieyiname"] == xieyiname:
                         if xdr_template_dict["pattern"][i][key] != v:
                             logger.info(f"xdr_template.json | {templete}.{xieyiname},{i}.{key} | {xdr_template_dict['pattern'][i][key]} --> {v} | modify")
-                        xdr_template_dict["pattern"][i][key] = v
-        dpi.json_put(xdr_template_dict, "/opt/dpi/xdrconf/rule/xdr_template.json")
+                            modify_flag = True
+                            tmp_dict[f"pattern.{i}.{key}"] = v
+            else:
+                for i in range(len(xdr_template_dict["pattern"])):
+                    if xdr_template_dict["pattern"][i][k] != v:
+                        logger.info(f"xdr_template.json | pattern.{i}.{k} | {xdr_template_dict['pattern'][i][k]} --> {v} | modify")
+                        modify_flag = True
+                        tmp_dict[f"pattern.{i}.{k}"] = v
+        if tmp_dict:
+            dpi.modify_xsajson(path="/opt/dpi/xdrconf/rule/xdr_template.json", **tmp_dict)
 
-    return True
+    logger.info("配置更新完成")
+
+    if modify_flag:
+        logger.info("重启DPI，等待中···")
+        dpi.restart(timeout=600)
+        time.sleep(5)
+        logger.info("DPI重启完成")
+        return True
 
 
 if __name__ == '__main__':

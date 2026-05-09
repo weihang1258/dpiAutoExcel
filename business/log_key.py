@@ -14,6 +14,7 @@ import copy
 import datetime
 import io
 import json
+import logging
 import os
 import re
 import time
@@ -30,6 +31,9 @@ from utils.ini_handler import INIHandler
 from utils.dpi_helper import dpi_init
 from utils.marex_helper import get_action_from_marex, get_type_from_marex
 from utils.crypto_helper import decrypt_file_load
+from utils.log_handler import DynamicFileHandler
+from utils.log_config import build_log_filename
+from utils.xml_helper import xml2dict, Xml
 from device.dpi_constants import (
     uploadfile, reportfile, house_ipsegsfile, pcip_ipsegsfile,
     comon_inifile, ydcommoninfo_rulefile, commoninfo_rulefile,
@@ -40,6 +44,9 @@ from device.dpi_constants import (
 
 logger = setup_logging(log_file_path="log/log_key.log", logger_name="log_key")
 
+# 日志策略：by_case=按用例拆分，by_sheet=按 sheet 拆分
+LOG_STRATEGY = "by_sheet"
+
 # provinceId2provID,省ID到省份ID映射
 provinceId2provID = {"11": "100", "44": "200", "31": "210", "12": "220", "50": "230", "21": "240", "32": "250",
                      "42": "270", "43": "731", "51": "280", "61": "290", "13": "311", "14": "351", "41": "371",
@@ -47,8 +54,15 @@ provinceId2provID = {"11": "100", "44": "200", "31": "210", "12": "220", "50": "
                      "46": "731", "45": "771", "36": "791", "52": "851", "53": "871", "54": "891", "62": "931",
                      "64": "951", "63": "971", "65": "991"}
 
+# 导入需要添加 DynamicFileHandler 的模块
+import device.socket_linux as socket_linux_module
+import monitor.dpistat as dpistat_module
+import device.dpi as dpi_module
+import core.result as result_module
 
-def log_key(p_excel: dict, sheets, path="用例", newpath=None):
+
+def log_key(p_excel: dict, sheets, path="用例", newpath=None,
+            session_id: str = None, log_strategy: str = LOG_STRATEGY):
     """处理关键字日志测试。
 
     Args:
@@ -56,11 +70,18 @@ def log_key(p_excel: dict, sheets, path="用例", newpath=None):
         sheets: sheet 名称列表
         path: Excel 文件路径
         newpath: 新 Excel 文件路径
+        session_id: 会话ID，用于日志文件名标识
+        log_strategy: 日志策略，"by_case" 按用例生成日志，"by_sheet" 按sheet生成日志
     """
     sheet_name2cases = p_excel["sheet_name2cases"]
     sheet_name2head2col = p_excel["sheet_name2head2col"]
     config = p_excel["config"]
     config_dev = p_excel["config_dev"]
+
+    # 检查 session_id，如果为空则自动生成
+    if session_id is None:
+        session_id = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        logger.warning(f"session_id 为空，自动生成：{session_id}")
 
     # Socket连接生成
     socket_xsa = (config["ip_xsa"], int(config["port_xsa"]))
@@ -80,59 +101,98 @@ def log_key(p_excel: dict, sheets, path="用例", newpath=None):
     xsa_json = dpi_xsa.json_get(path="/opt/dpi/xsaconf/xsa.json")
     timeout_flow = get_flow_timeout(xsa_json)
 
-    for sheet_name in sheets:
-        logger.info(f"---------------------开始执行excel：{path}，sheet：{sheet_name}---------------------")
-        if sheet_name != sheets[0]:
-            path = newpath
-            time.sleep(20)
+    # ==================== 创建 DynamicFileHandler ====================
+    modules = [dpi_xsa, dpi_xdr, stat_dpi_xsa, logserver,
+               dpi_module, socket_linux_module, dpistat_module, result_module]
 
-        ignore_fields = config.get(f"{sheet_name}_ignore_fields", None)
-        length_fields = config.get(f"{sheet_name}_length_fields", None)
-        time_fields = config.get(f"{sheet_name}_time_fields", None)
+    # 创建 DynamicFileHandler
+    dynamic_handler = DynamicFileHandler(log_dir="log", level=logging.DEBUG)
 
-        cases = sheet_name2cases[sheet_name]
+    # 确保日志目录存在
+    log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "log")
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
 
-        heads = list()
-        for field in p_excel["sheet_name2heads"][sheet_name]:
-            if field and field.startswith("act_"):
-                heads.append(field)
+    # 添加到所有模块的 logger
+    for module in modules:
+        if hasattr(module, 'logger'):
+            # 移除原有的 FileHandler（保留 ConsoleHandler）
+            for handler in module.logger.handlers[:]:
+                if isinstance(handler, logging.FileHandler):
+                    module.logger.removeHandler(handler)
+            # 添加 DynamicFileHandler
+            module.logger.addHandler(dynamic_handler)
 
-        # DPI环境初始化
-        if sum(list(map(lambda x: 1 if x[0]["执行状态"] and int(x[0]["执行状态"]) == 1 else 0, cases.values()))) > 0:
-            devconfig_tmp = dict()
-            tmp = config[sheet_name + "_devconfig"].split(",") if config[sheet_name + "_devconfig"] else []
+    # 为当前模块也添加 handler
+    # 先移除原有的 FileHandler
+    handlers_to_remove = []
+    for handler in logger.handlers[:]:
+        if isinstance(handler, logging.FileHandler):
+            handlers_to_remove.append(handler)
+    for handler in handlers_to_remove:
+        logger.removeHandler(handler)
+    logger.addHandler(dynamic_handler)
 
-            for i in tmp:
-                if devconfig_tmp:
-                    for ini_config_name, line in config_dev[i].items():
-                        if ini_config_name not in devconfig_tmp:
-                            devconfig_tmp[ini_config_name] = dict()
-                        for key, val in line.items():
-                            devconfig_tmp[ini_config_name][key] = val
+    try:
+        for sheet_name in sheets:
+            # 根据策略创建日志文件
+            if log_strategy == "by_sheet":
+                log_file = build_log_filename(session_id, sheet_name, strategy=log_strategy)
+                dynamic_handler.switch_file(log_file)
+                logger.info(f"日志文件：{log_file}")
+
+            logger.info(f"---------------------开始执行excel：{path}，sheet：{sheet_name}---------------------")
+            if sheet_name != sheets[0]:
+                path = newpath
+                time.sleep(20)
+
+            ignore_fields = config.get(f"{sheet_name}_ignore_fields", None)
+            length_fields = config.get(f"{sheet_name}_length_fields", None)
+            time_fields = config.get(f"{sheet_name}_time_fields", None)
+
+            cases = sheet_name2cases[sheet_name]
+
+            heads = list()
+            for field in p_excel["sheet_name2heads"][sheet_name]:
+                if field and field.startswith("act_"):
+                    heads.append(field)
+
+            # DPI环境初始化
+            if sum(list(map(lambda x: 1 if x[0]["执行状态"] and int(x[0]["执行状态"]) == 1 else 0, cases.values()))) > 0:
+                devconfig_tmp = dict()
+                tmp = config[sheet_name + "_devconfig"].split(",") if config[sheet_name + "_devconfig"] else []
+
+                for i in tmp:
+                    if devconfig_tmp:
+                        for ini_config_name, line in config_dev[i].items():
+                            if ini_config_name not in devconfig_tmp:
+                                devconfig_tmp[ini_config_name] = dict()
+                            for key, val in line.items():
+                                devconfig_tmp[ini_config_name][key] = val
+                    else:
+                        devconfig_tmp = copy.deepcopy(config_dev[i])
+
+                if config["ip_xsa"] == config["ip_xdr"] and config["port_xsa"] == config["port_xdr"]:
+                    if sheet_name in ("vpn_block", "vpn_block_inner", "dns_parse"):
+                        dpi_xsa.mod_switch(modified_param={"oversea_switch": "1"})
+                    res_dpi_init = dpi_init(dpi_xsa, **devconfig_tmp)
+                    logger.info("停止dpi_monitor和policyserver")
+                    dpi_xsa.dpi_monitor(op="stop")
+                    dpi_xsa.policyserver(op="stop")
                 else:
-                    devconfig_tmp = copy.deepcopy(config_dev[i])
-
-            if config["ip_xsa"] == config["ip_xdr"] and config["port_xsa"] == config["port_xdr"]:
-                if sheet_name in ("vpn_block", "vpn_block_inner", "dns_parse"):
-                    dpi_xsa.mod_switch(modified_param={"oversea_switch": "1"})
-                res_dpi_init = dpi_init(dpi_xsa, **devconfig_tmp)
-                logger.info("停止dpi_monitor和policyserver")
-                dpi_xsa.dpi_monitor(op="stop")
-                dpi_xsa.policyserver(op="stop")
+                    dpi_init(dpi_xsa, **devconfig_tmp)
+                    dpi_init(dpi_xdr, **devconfig_tmp)
+                    logger.info("停止dpi_monitor和policyserver")
+                    dpi_xsa.dpi_monitor(op="stop")
+                    dpi_xsa.policyserver(op="stop")
+                    dpi_xdr.dpi_monitor(op="stop")
+                    dpi_xdr.policyserver(op="stop")
             else:
-                dpi_init(dpi_xsa, **devconfig_tmp)
-                dpi_init(dpi_xdr, **devconfig_tmp)
-                logger.info("停止dpi_monitor和policyserver")
-                dpi_xsa.dpi_monitor(op="stop")
-                dpi_xsa.policyserver(op="stop")
-                dpi_xdr.dpi_monitor(op="stop")
-                dpi_xdr.policyserver(op="stop")
-        else:
-            continue
+                continue
 
-        # 重新获取流超时时间
-        xsa_json_reload = dpi_xsa.json_get(path="/opt/dpi/xsaconf/xsa.json")
-        timeout_flow = get_flow_timeout(xsa_json_reload)
+            # 重新获取流超时时间
+            xsa_json_reload = dpi_xsa.json_get(path="/opt/dpi/xsaconf/xsa.json")
+            timeout_flow = get_flow_timeout(xsa_json_reload)
         xsa_json2dict = dpi_xsa.json_get(path=xsa_jsonfile)
         xsa_modcfg2dict = dpi_xsa.modcfg2dict()
 
@@ -357,7 +417,7 @@ def log_key(p_excel: dict, sheets, path="用例", newpath=None):
             keyvalue_headNos = None
 
         # 日志路径设置
-        path_log = spath_log = logfilecount_s = None
+        path_log = spath_log = count_fopen_ok = logfilecount_s = empty_path = curpath_log = curspath_log = None
         curdate = datetime.datetime.now().strftime('%Y-%m-%d')
         if config.get(f"{sheet_name}_uploadrule", None):
             if uploadex_field in ("0|0|3", "1|1|3"):
@@ -422,7 +482,7 @@ def log_key(p_excel: dict, sheets, path="用例", newpath=None):
         count_fopen_ok = dpi_xdr.cmd(cmd)
 
         # 记录开始时间
-        time_s = gettime(2)
+        time_s = int(dpi_xsa.cmd('date +%s').strip())
         logger.info(f"开始时间：{gettime(4)}")
 
         logger.info("执行发包")
@@ -487,7 +547,7 @@ def log_key(p_excel: dict, sheets, path="用例", newpath=None):
                 raise RuntimeError("流超时后等待65s后，xdrtxtlog.stat显示文件还没有关闭！")
 
         # 记录结束时间
-        time_e = gettime(2)
+        time_e = int(dpi_xsa.cmd('date +%s').strip())
         logger.info(f"结束时间：{gettime(4)}")
 
         # 提取日志内容
@@ -505,18 +565,22 @@ def log_key(p_excel: dict, sheets, path="用例", newpath=None):
             logger.info("初始化解压目录：/tmp/txt")
             tmpdir = "/tmp/txt"
             if logserver.isdir(tmpdir):
-                logserver.cmd("rm -rf %s" % tmpdir)
-            logserver.mkdir(dir=tmpdir)
+                logserver.cmd(r"find %s -type f -exec rm -f {} \;" % tmpdir)
+            else:
+                logserver.mkdir(dir=tmpdir)
 
-            logfilecount_e = logserver.cmd(args="ls|wc -l", cwd=path_log)
-            logger.info(f"{path_log}\t结束时日志文件数量：{logfilecount_e}")
+            logfilecount_e = logserver.cmd(f"find {curpath_log} -type f|wc -l")
+            logger.info(f"{curpath_log} 结束时日志文件数量：{logfilecount_e}")
             logger.info([logfilecount_s, logfilecount_e])
             if int(logfilecount_e.strip()) - int(logfilecount_s.strip()) > 0:
                 cmd = "ls -rt|tail -n %s|grep %s$" % (
                     int(logfilecount_e) - int(logfilecount_s),
                     config.get(sheet_name + "_compression") if config.get(sheet_name + "_compression") else config.get(sheet_name + "_filetype")
                 )
-                response = logserver.cmd(args=cmd, cwd=path_log).strip().split()
+                response = logserver.cmd(args=cmd, cwd=curpath_log)
+                logger.info(cmd)
+                logger.info(response)
+                response = response.strip().split()
 
             # 解压缩文件
             if config.get(sheet_name + "_compression", None):
@@ -528,14 +592,14 @@ def log_key(p_excel: dict, sheets, path="用例", newpath=None):
                         cmd = f"unzip {name} -d {tmpdir}"
                     else:
                         raise RuntimeError("不支持压缩方式：%s" % config.get(sheet_name + "_compression"))
-                    logger.info(logserver.cmd(args=cmd, cwd=path_log))
+                    logger.info(logserver.cmd(args=cmd, cwd=curpath_log))
             else:
                 for name in response:
                     if name.endswith(config.get(sheet_name + "_filetype", "txt")):
                         # XML文件需要解密处理
                         if config.get(sheet_name + "_filetype") == "xml":
                             logger.info("xml解析成明文")
-                            content_encrypt = logserver.getfo(remotepath=path_log.rstrip("/") + "/" + name).read()
+                            content_encrypt = logserver.getfo(remotepath=curpath_log.rstrip("/") + "/" + name).read()
                             content_decrypt = decrypt_file_load(
                                 xml=content_encrypt,
                                 method="fileLoad",
@@ -545,7 +609,7 @@ def log_key(p_excel: dict, sheets, path="用例", newpath=None):
                             )
                             logserver.putfo(io.BytesIO(content_decrypt), f"{tmpdir}/{name}")
                         else:
-                            logserver.cmd(args=f"cp -f {name} {tmpdir}", cwd=path_log)
+                            logserver.cmd(args=f"cp -f {name} {tmpdir}", cwd=curpath_log)
 
             # 提取日志内容
             logger.info("提取日志内容")
@@ -582,9 +646,38 @@ def log_key(p_excel: dict, sheets, path="用例", newpath=None):
                         # 提取log节点
                         content_list += re.findall(r"<%s>(?:.|\n)+?</%s>" % (log_cyclefield, log_cyclefield), content)
 
-                # 将所有的log节点直接排序后拼接（按照原始代码逻辑）
-                log_xml = log_xmlprefix + "\n".join(sorted(content_list)) + log_xmlsuffix
-                act_log_dict["log"] = [[log_xml]]
+                # 从每个 log 节点中提取 key 并按 key 分组（按照原始代码 line 4336-4361 逻辑）
+                keyvalue_list = config.get(sheet_name + "_keyvalue", "").split(",")
+                keyvalue_list = [] if keyvalue_list == [""] else keyvalue_list
+
+                for content in content_list:
+                    # 从 XML 中提取 key
+                    content_dict = xml2dict(Xml(content=log_xmlprefix + content + log_xmlsuffix).root)
+                    tmpkeys = list()
+                    for keyvalue in keyvalue_list:
+                        tmp = content_dict
+                        for tmp_key in keyvalue.split("."):
+                            tmp = tmp.get(tmp_key)
+                        tmpkeys.append(str(tmp) if tmp is not None else "")
+                    key = "_".join(tmpkeys).lower()
+
+                    if key in act_log_dict:
+                        act_log_dict[key].append(content)
+                    else:
+                        act_log_dict[key] = [content]
+
+                # 调整格式：act_log_dict[key] = [{filed:log_xml}]
+                # 按照原始代码 line 4357-4359 的排序逻辑
+                sort_flag = config.get(sheet_name + "_sort_flag", "")
+                for key in act_log_dict.keys():
+                    if sort_flag:
+                        act_log_dict[key].sort(
+                            key=lambda x: [re.search(f".*{i}.*", x).group() if re.search(f".*{i}.*", x) else "" for i in
+                                           sort_flag.split(",")])
+                    else:
+                        act_log_dict[key].sort()
+                    log_xml = "\n".join([log_xmlprefix] + act_log_dict[key] + [log_xmlsuffix])
+                    act_log_dict[key] = [[log_xml]]
             else:
                 # 普通文本格式处理
                 log_lines = []
@@ -596,7 +689,7 @@ def log_key(p_excel: dict, sheets, path="用例", newpath=None):
 
                 for line in log_lines:
                     fields = line.split(config.get(sheet_name + "_splitflag", "\t"))
-                    key = "_".join(list(map(lambda x: str(fields[x]), keyvalue_headNos))) if keyvalue_headNos else "log"
+                    key = "_".join(list(map(lambda x: str(fields[x]), keyvalue_headNos))).lower() if keyvalue_headNos else "log"
                     if key in act_log_dict:
                         act_log_dict[key].append(fields)
                     else:
@@ -616,7 +709,7 @@ def log_key(p_excel: dict, sheets, path="用例", newpath=None):
             logserver.socketserver_writefile("/tmp/socketserver.bin")
             log_list = monitorlog(log_byts)
             for log in log_list:
-                key = "_".join(list(map(lambda x: str(log[x]), keyvalue_list)))
+                key = "_".join(list(map(lambda x: str(log[x]), keyvalue_list))).lower()
                 if key in act_log_dict:
                     act_log_dict[key].append(log)
                 else:
@@ -633,25 +726,32 @@ def log_key(p_excel: dict, sheets, path="用例", newpath=None):
             if empty_path and reportlogcount != "0":
                 mark_tmp = [f"评测相关检查，上报目录存在文件：{empty_path}"]
 
-        # 记录结束时间
-        time_e = gettime(2)
-        logger.info(f"结束时间：{gettime(4)}")
-
         result_list = list()
         counter = 1
+
+        # 提前提取所有用例的预期值
+        logger.info("预期值格式化（提前提取）")
+        all_exp_logs = casename2exp_log(p_excel, sheet_name)
+
         for case_name, case in cases.items():
             if not case[0].get("用例名", None) or str(case[0].get("执行状态", "")) != "1":
                 continue
+
+            # 按 case 策略时，每个用例切换一次日志文件
+            if log_strategy == "by_case":
+                log_file = build_log_filename(session_id, sheet_name, case_name, log_strategy)
+                dynamic_handler.switch_file(log_file)
+                logger.info(f"日志文件：{log_file}")
 
             logger.info("%s\t核对用例日志：%s\t%s\t%s" % (
                 datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), sheet_name, counter, case_name))
 
             mark = list()
-            key = "_".join(list(map(lambda x: case[0][x], keynames))).lower()
+            key = "_".join(list(map(lambda x: str(case[0][x]), keynames))).lower() if keynames else "log"
 
             # 预期值
             logger.info("预期值格式化")
-            exp_log_list = casename2exp_log(p_excel, sheet_name).get(case_name, [])
+            exp_log_list = all_exp_logs.get(case_name, [])
             # 针对json数据解析成dict
             if config.get(f"{sheet_name}_reportrule", None) and not config.get(f"{sheet_name}_ispc", None):
                 exp_log_list = list(map(lambda x: {list(x.keys())[0]: json.loads(list(x.values())[0])}, exp_log_list))
@@ -729,6 +829,18 @@ def log_key(p_excel: dict, sheets, path="用例", newpath=None):
             row=row_tmp, head2col=sheet_name2head2col[sheet_name],
             mark=mark_tmp, only_write=False, newpath=newpath
         )
+
+    finally:
+        # 清理所有 FileHandler，防止日志重复输出
+        dynamic_handler.close()
+        for module in modules:
+            if hasattr(module, 'logger'):
+                for handler in module.logger.handlers[:]:
+                    if isinstance(handler, logging.FileHandler):
+                        module.logger.removeHandler(handler)
+        for handler in logger.handlers[:]:
+            if isinstance(handler, logging.FileHandler):
+                logger.removeHandler(handler)
 
     logserver.client.close()
     dpi_xsa.client.close()

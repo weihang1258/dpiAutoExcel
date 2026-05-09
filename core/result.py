@@ -34,7 +34,7 @@ def result_deal(xls, sheet_index: str, result_list, row: int, head2col: dict, ma
     Returns:
         str: 保存的文件路径
     """
-    logger.info([xls, sheet_index, result_list, row, head2col, mark, only_write, isquit, newpath])
+    # logger.info([xls, sheet_index, result_list, row, head2col, mark, only_write, isquit, newpath])
     logger.info("结果准备写入excel")
     if type(xls) == str:
         xls = Excel(xls)

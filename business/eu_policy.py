@@ -12,10 +12,13 @@ EU策略处理模块
 import copy
 import datetime
 import io
+import logging
 import os
 import re
 import time
 from utils.common import wait_until, get_flow_timeout, setup_logging
+from utils.log_handler import DynamicFileHandler
+from utils.log_config import build_log_filename
 from core.result import result_deal
 from device.dpi import Dpi
 from monitor.dpistat import CheckDpiStat
@@ -33,8 +36,17 @@ from device.dpi_constants import (
 
 logger = setup_logging(log_file_path="log/eu_policy.log", logger_name="eu_policy")
 
+# 日志策略：by_case=按用例拆分，by_sheet=按 sheet 拆分
+LOG_STRATEGY = "by_case"
 
-def eu_policy(p_excel: dict, sheets=("eu_policy",), path="用例", newpath=None):
+# 导入需要添加 DynamicFileHandler 的模块
+import device.socket_linux as socket_linux_module
+import monitor.dpistat as dpistat_module
+import device.dpi as dpi_module
+import core.result as result_module
+
+
+def eu_policy(p_excel: dict, sheets=("eu_policy",), path="用例", newpath=None, session_id: str = None, log_strategy: str = LOG_STRATEGY):
     """处理 EU 策略测试。
 
     Args:
@@ -65,12 +77,52 @@ def eu_policy(p_excel: dict, sheets=("eu_policy",), path="用例", newpath=None)
     xsa = Dpi(socket_xsa)
     dpistat = CheckDpiStat(socket_xsa)
 
+    # 检查 session_id，如果为空则自动生成
+    if session_id is None:
+        session_id = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        logger.warning(f"session_id 为空，自动生成：{session_id}")
+
     # 获取流超时时间
     timeout_flow = get_flow_timeout(xsa.json_get(path="/opt/dpi/xsaconf/xsa.json"), key="tcp_fin_timeout_ms")
+
+    # ==================== 创建 DynamicFileHandler ====================
+    modules = [xsa, dpistat,
+               dpi_module, socket_linux_module, dpistat_module, result_module]
+
+    # 创建 DynamicFileHandler
+    dynamic_handler = DynamicFileHandler(log_dir="log", level=logging.DEBUG)
+
+    # 确保日志目录存在
+    log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "log")
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+
+    # 添加到所有模块的 logger
+    for module in modules:
+        if hasattr(module, 'logger'):
+            for handler in module.logger.handlers[:]:
+                if isinstance(handler, logging.FileHandler):
+                    module.logger.removeHandler(handler)
+            module.logger.addHandler(dynamic_handler)
+
+    # 为当前模块也添加 handler
+    handlers_to_remove = []
+    for handler in logger.handlers[:]:
+        if isinstance(handler, logging.FileHandler):
+            handlers_to_remove.append(handler)
+    for handler in handlers_to_remove:
+        logger.removeHandler(handler)
+    logger.addHandler(dynamic_handler)
 
     # 执行用例
     counter = 1
     for sheet_name in sheets:
+        # 根据策略创建日志文件
+        if log_strategy == "by_sheet":
+            log_file = build_log_filename(session_id, sheet_name, strategy=log_strategy)
+            dynamic_handler.switch_file(log_file)
+            logger.info(f"日志文件：{log_file}")
+
         logger.info(f"---------------------开始执行excel：{path}，sheet：{sheet_name}---------------------")
         cases = sheet_name2cases[sheet_name]
 
@@ -155,6 +207,12 @@ def eu_policy(p_excel: dict, sheets=("eu_policy",), path="用例", newpath=None)
 
             if counter != 1:
                 path = newpath
+
+            # 按 case 策略时，每个用例切换一次日志文件
+            if log_strategy == "by_case":
+                log_file = build_log_filename(session_id, sheet_name, case_name, log_strategy)
+                dynamic_handler.switch_file(log_file)
+                logger.info(f"日志文件：{log_file}")
 
             logger.info("---------------------%s\t%s\t执行用例：%s---------------------" % (
                 datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), counter, case_name))
@@ -478,12 +536,14 @@ def eu_policy(p_excel: dict, sheets=("eu_policy",), path="用例", newpath=None)
                 if ("kwd=1" in str(case[0].get("策略", "")) and float(int(res_dict["success"]) / int(res_dict['total'])) <= 0.05) or ("kwd=1" not in str(case[0].get("策略", "")) and float(int(res_dict["success"]) / int(res_dict['total'])) <= 0.01):
                     tmp_list.append((case[0]["row"], sheet_name2head2col[sheet_name]["成功率"], res_dict["success_ratio"], (255, 255, 255)))
                 else:
+                    logger.error(f"成功率：{(int(res_dict['success']) / int(res_dict['total'])):.2%}，成功数：{res_dict['success']}，总数：{res_dict['total']}")
                     mark.append(f"成功率：{(int(res_dict['success']) / int(res_dict['total'])):.2%}")
                     tmp_list.append((case[0]["row"], sheet_name2head2col[sheet_name]["成功率"], res_dict["success_ratio"], (255, 0, 0)))
 
                 if is_report == False or ("kwd=1" in str(case[0].get("策略", "")) and int(logcount) / int(res_dict["total"]) >= 0.95) or ("kwd=1" not in str(case[0].get("策略", "")) and int(logcount) / int(res_dict["total"]) >= 0.99):
                     tmp_list.append((case[0]["row"], sheet_name2head2col[sheet_name]["日志数量"], logcount, (255, 255, 255)))
                 else:
+                    logger.error(f"日志率：{(int(logcount) / int(res_dict['total'])):.2%}，日志数：{logcount}，总数：{res_dict['total']}")
                     mark.append(f"日志率：{(int(logcount) / int(res_dict['total'])):.2%}")
                     tmp_list.append((case[0]["row"], sheet_name2head2col[sheet_name]["日志数量"], logcount, (255, 0, 0)))
 
@@ -495,12 +555,14 @@ def eu_policy(p_excel: dict, sheets=("eu_policy",), path="用例", newpath=None)
                 if float(int(res_dict["success"]) / int(res_dict['total'])) > 0.90:
                     tmp_list.append((case[0]["row"], sheet_name2head2col[sheet_name]["成功率"], res_dict["success_ratio"], (255, 255, 255)))
                 else:
+                    logger.error(f"成功率：{(int(res_dict['success']) / int(res_dict['total'])):.2%}，成功数：{res_dict['success']}，总数：{res_dict['total']}")
                     mark.append(f"成功率：{(int(res_dict['success']) / int(res_dict['total'])):.2%}")
                     tmp_list.append((case[0]["row"], sheet_name2head2col[sheet_name]["成功率"], res_dict["success_ratio"], (255, 0, 0)))
 
                 if is_report == False or int(logcount) / int(res_dict["total"]) > 0.90:
                     tmp_list.append((case[0]["row"], sheet_name2head2col[sheet_name]["日志数量"], logcount, (255, 255, 255)))
                 else:
+                    logger.error(f"日志率：{(int(logcount) / int(res_dict['total'])):.2%}，日志数：{logcount}，总数：{res_dict['total']}")
                     mark.append(f"日志率：{(int(logcount) / int(res_dict['total'])):.2%}")
                     tmp_list.append((case[0]["row"], sheet_name2head2col[sheet_name]["日志数量"], logcount, (255, 0, 0)))
 
@@ -513,8 +575,15 @@ def eu_policy(p_excel: dict, sheets=("eu_policy",), path="用例", newpath=None)
                 if logcount == 0:
                     tmp_list.append((case[0]["row"], sheet_name2head2col[sheet_name]["日志数量"], logcount, (255, 255, 255)))
                 else:
+                    logger.error(f"日志数量不为0：{logcount}")
                     mark.append(f"日志数量不为0：{logcount}")
                     tmp_list.append((case[0]["row"], sheet_name2head2col[sheet_name]["日志数量"], logcount, (255, 0, 0)))
+
+                # 误封堵检查
+                rst_4tuple = extract_4tuple_from_pcap(rst_pcap)
+                logger.info(f"发送的封堵包四元组数量：{len(rst_4tuple)}")
+                if len(rst_4tuple) > 0:
+                    mark.append(f"封堵包误封四元组: {rst_4tuple}")
 
             tmp_list.append((case[0]["row"], sheet_name2head2col[sheet_name]["成功次数"], res_dict["success"], (255, 255, 255)))
             tmp_list.append((case[0]["row"], sheet_name2head2col[sheet_name]["失败次数"], res_dict["fail"], (255, 255, 255)))
@@ -558,6 +627,17 @@ def eu_policy(p_excel: dict, sheets=("eu_policy",), path="用例", newpath=None)
                 hostname=npb_host, port=npb_port, username=npb_username,
                 password=npb_password, inport=npb_inport, outport=npb_outport
             )
+
+    # ==================== 清理 DynamicFileHandler ====================
+    dynamic_handler.close()
+    for module in modules:
+        if hasattr(module, 'logger'):
+            for handler in module.logger.handlers[:]:
+                if isinstance(handler, logging.FileHandler):
+                    module.logger.removeHandler(handler)
+    for handler in logger.handlers[:]:
+        if isinstance(handler, logging.FileHandler):
+            logger.removeHandler(handler)
 
     xsa.client.close()
     dpistat.client.close()

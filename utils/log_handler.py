@@ -18,7 +18,7 @@
 import logging
 import os
 from logging.handlers import TimedRotatingFileHandler
-from utils.common import LOG_FORMAT, LOG_DATE_FORMAT
+from utils.common import LOG_FORMAT, LOG_DATE_FORMAT, get_base_dir
 
 
 class DynamicFileHandler(logging.Handler):
@@ -36,7 +36,7 @@ class DynamicFileHandler(logging.Handler):
         初始化 DynamicFileHandler
 
         Args:
-            log_dir: 日志文件存放目录，默认为 "log"
+            log_dir: 日志文件存放目录，默认为 "log"（相对于项目根目录）
             level: 日志级别，默认为 DEBUG
             rotation: 轮转配置，None 或 dict{
                 "when": "midnight",   # 轮转时间点
@@ -45,7 +45,11 @@ class DynamicFileHandler(logging.Handler):
             }
         """
         super().__init__()
-        self.log_dir = log_dir
+        # 如果是相对路径，使用项目根目录作为基准路径
+        if not os.path.isabs(log_dir):
+            self.log_dir = os.path.join(get_base_dir(), log_dir)
+        else:
+            self.log_dir = log_dir
         self.level = level
         self.rotation = rotation
         self.current_handler = None
