@@ -836,6 +836,13 @@ def dpi_install(
             install_file = f"{outdir2}/install.sh"
             logger.info(f"→ 安装脚本路径：{install_file}")
 
+        # ---------- 校验安装脚本是否存在 ----------
+        logger.info(f"→ 校验安装脚本是否存在：{install_file}")
+        if not dpiserver.isfile(install_file):
+            logger.error(f"✗ 安装脚本不存在：{install_file}")
+            raise RuntimeError(f"安装脚本不存在：{install_file}")
+        logger.info(f"✓ 安装脚本校验通过")
+
         # ---------- 执行安装 ----------
         logger.info("→ 开始执行 install.sh 安装脚本...")
         dpiserver.install(dpipath=install_file, dpipath_bak=dpipath_bak)
@@ -865,6 +872,14 @@ def dpi_install(
     else:
         # ==================== 升级流程 ====================
         logger.info("→ 执行升级流程...")
+
+        # ---------- 校验升级脚本是否存在 ----------
+        logger.info(f"→ 校验升级脚本是否存在：{upms_install_file}")
+        if not dpiserver.isfile(upms_install_file):
+            logger.error(f"✗ 升级脚本不存在：{upms_install_file}")
+            raise RuntimeError(f"升级脚本不存在：{upms_install_file}")
+        logger.info(f"✓ 升级脚本校验通过")
+
         logger.info(f"  → 目标版本：{dpiversion}")
         logger.info(f"  → xsa.json 修改项：{xsa_modify_dict}")
         logger.info(f"  → 备份目录：{dpipath_bak}")

@@ -519,6 +519,9 @@ def _generate_statistics(path_save, sheet_name2seconds):
 
     statistics_list = list()
     for sheet_name, cases in p1_excel.get("sheet_name2cases", dict()).items():
+        # 跳过没有"结果"列的 sheet
+        if "结果" not in p1_excel.get("sheet_name2heads", {}).get(sheet_name, []):
+            continue
         count_exe, count_unexe, count_pass, count_fail, count_noresult = _count_case_results(cases)
 
         success_rate = count_pass / count_exe if count_exe else 0.0
@@ -575,8 +578,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='自动化测试执行脚本')
     parser.add_argument('-f', '--file', type=str, required=False,
                         help='Excel文件路径，例如: 用例_移动.xlsx')
-    parser.add_argument('-s', '--sheet', type=str, required=False, default="install",
-                        help='指定要执行的sheet名称（默认：install）')
+    parser.add_argument('-s', '--sheet', type=str, required=False, default=None,
+                        help='指定要执行的sheet名称（不指定则自动执行所有有可执行用例的sheet）')
     parser.add_argument('-bat', '--bat', action='store_true', default=False, help='初始化bat文件')
     parser.add_argument('-ps1', '--ps1', action='store_true', default=False, help='初始化ps1文件')
     args = parser.parse_args()
@@ -590,5 +593,4 @@ if __name__ == '__main__':
     elif args.file:
         run(excel_path=args.file, sheet=args.sheet)
     else:
-        run(excel_path="用例_电信_1060.xlsx", sheet=None)
-        # run(excel_path="用例_升级.xlsx", sheet="install")
+        logger.warning("请使用参数 --help")

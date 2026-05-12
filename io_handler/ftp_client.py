@@ -65,6 +65,7 @@ class FTPclient:
                 logger.info("Connected to FTP server using plain FTP")
             except Exception as e:
                 logger.error(f"Failed to connect to FTP server: {e}")
+                logger.error(f"FTP 连接信息 → host: {self.host}, user: {self.user}, passwd: {self.passwd}")
                 self.ftp = None  # 连接失败，确保 self.ftp 为空
                 raise
 

@@ -178,10 +178,11 @@ def bzip(p_excel: dict, sheets, path="用例", newpath=None,
 
             dpimode = dpi_xsa.get_dpimode()
             # 重新获取流超时时间
-            timeout_flow = get_flow_timeout(dpi_xsa.json_get(path="/opt/dpi/xsaconf/xsa.json"))
             xsa_json = dpi_xsa.json_get("/opt/dpi/xsaconf/xsa.json")
-            bzip_count_time = xsa_json["xdrtxtlog"]["bzip_count_time"]
-            bzip_log_write_path = xsa_json["xdrtxtlog"]["bzip_log_write_path"]
+            timeout_flow = get_flow_timeout(xsa_json)
+            xdrtxtlog = xsa_json.get("xdrtxtlog", {})
+            bzip_count_time = xdrtxtlog.get("bzip_count_time", 60)
+            bzip_log_write_path = xdrtxtlog.get("bzip_log_write_path", "/opt/dpi/xdrtxtlog")
 
             # 等待流超时
             logger.info("等待流超时(%s ms)" % (timeout_flow * 2))
