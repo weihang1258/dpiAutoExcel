@@ -1,93 +1,40 @@
-# dpiAutoExcel - DPI 自动化测试框架
+# dpiAutoExcel
 
-## 项目概述
+基于 Excel 驱动的 DPI（Deep Packet Inspection）自动化测试框架。通过 Excel 文件定义测试用例，自动连接远程 DPI 设备执行测试，并将结果以颜色标记回写到 Excel 报告中。
 
-dpiAutoExcel 是一款基于 Excel 驱动的 DPI（Deep Packet Inspection，深度包检测）自动化测试框架。通过读取 Excel 测试用例文件，自动连接远程 DPI 设备执行测试，并支持回写测试结果。
+## 功能特性
 
-## 核心功能
+- **Excel 驱动测试** - 在 Excel 中编写测试用例，支持多 Sheet 并行/串行执行
+- **DPI 安装/升级** - 自动从 FTP 下载安装包，支持全新安装、版本升级、模式切换
+- **版本自动获取** - 集成 RDM 平台，自动获取最新版本发布路径（`versions.json`）
+- **日志测试** - 支持 accesslog、s_accesslog、monitor、filter、vpn_block 等多种日志类型
+- **策略测试** - EU 策略（block、fz_block）自动化验证
+- **流量回放与抓包** - 支持 Scapy 和 tcpreplay 两种 PCAP 回放方式，自动抓包比对
+- **镜像 VLAN 测试** - 镜像端口 VLAN 配置验证
+- **BZIP 压缩测试** - BZIP/IP 压缩策略测试
+- **结果统计报告** - 自动生成带颜色标记的测试报告，包含成功率、执行时间等统计信息
+- **批量脚本生成** - 一键生成 BAT / PowerShell 批量执行脚本
 
-- **Excel 驱动测试**：使用 Excel 文件管理测试用例，支持多 Sheet 并行/串行执行
-- **远程设备控制**：支持 SSH 和 Socket 两种方式连接 DPI 设备
-- **流量回放**：支持 Scapy 和 tcpreplay 两种方式进行 pcap 流量回放
-- **结果比对**：支持 XML 和字典两种格式的期望值与实际值比对
-- **版本管理**：通过 FTP 自动下载和升级 DPI 版本
-- **状态监控**：实时监控 DPI 各项统计指标
-- **RDM 集成**：从 RDM 平台提取发布路径信息
+## 快速开始
 
-## 项目结构
+### 环境要求
 
-```
-dpiAutoExcel/
-├── main.py                      # 主入口程序
-├── main_exe.spec                # PyInstaller 打包配置
-├── requirements.txt              # Python 依赖
-├── versions.json                 # DPI 版本配置
-│
-├── business/                     # 主业务逻辑
-│   ├── install.py               # DPI 安装/升级流程
-│   ├── pcapdump.py              # PCAP 抓包测试
-│   ├── eu_policy.py             # EU 策略测试
-│   ├── mirrorvlan.py            # 镜像 VLAN 测试
-│   ├── log_active.py            # 日志激活测试
-│   ├── log_audit.py             # 日志审计测试
-│   ├── log_key.py               # 关键日志测试
-│   └── bzip.py                  # BZIP 压缩测试
-│
-├── core/                         # 核心测试逻辑
-│   ├── excel_reader.py          # Excel 解析器
-│   ├── result.py                 # 测试结果处理
-│   ├── comparer.py               # 测试结果比对
-│   ├── pcap.py                   # 流量回放核心
-│   └── tcpdump.py               # tcpdump 封装
-│
-├── device/                       # 设备通信层
-│   ├── dpi.py                   # DPI 设备控制类
-│   ├── socket_linux.py          # Socket 通信客户端
-│   ├── ssh.py                   # SSH/SFTP 客户端
-│   ├── tcpdump.py               # tcpdump 工具封装
-│   ├── hengwei.py               # 恒威设备相关
-│   ├── webvisit.py              # Web 访问工具
-│   └── dpi_constants.py         # DPI 常量定义
-│
-├── io_handler/                   # 文件 I/O 处理
-│   ├── excel.py                 # Excel 操作封装（xlwings）
-│   └── ftp_client.py            # FTP 客户端
-│
-├── monitor/                      # 状态监控
-│   ├── dpistat.py               # DPI 状态解析
-│   └── tcpdump.py               # tcpdump 监控
-│
-├── protocol/                      # 协议处理
-│   └── pcap_analyzer.py         # PCAP 分析和比对
-│
-├── data/                         # 数据模型
-│   ├── xml_comparer.py          # XML 比对器
-│   └── dict_comparer.py         # 字典比对器
-│
-├── utils/                        # 工具模块
-│   ├── common.py                # 通用工具函数
-│   ├── log_handler.py           # 动态日志处理器
-│   ├── gzip_util.py             # Gzip 压缩工具
-│   ├── ini_handler.py           # INI 文件处理
-│   ├── ip_range.py              # IP 范围处理
-│   ├── dpi_helper.py            # DPI 辅助函数
-│   ├── crypto_helper.py         # 加密辅助函数
-│   ├── marex_helper.py          # Marex 策略辅助函数
-│   ├── log_parser.py            # 日志解析器
-│   ├── xml_helper.py            # XML 辅助函数
-│   ├── rdm_extractor.py         # RDM 平台发布路径提取
-│   └── constants.py             # 常量定义
-│
-├── tests/                        # 测试用例
-│   ├── test_main_config.py     # 主配置测试
-│   └── test_constants.py       # 常量测试
-│
-├── log/                          # 日志目录（运行时生成）
-├── out/                          # 输出目录（运行时生成）
-└── temp_files/                   # 临时文件（运行时生成）
+- Windows 系统（依赖 xlwings，需安装 Microsoft Excel）
+- Python 3.8+
+
+### 安装依赖
+
+```bash
+pip install -r requirements.txt
 ```
 
-## 常用命令
+### 下载最新版本
+
+前往 [Releases](https://github.com/weihang1258/dpiAutoExcel/releases) 页面下载最新可执行文件（免安装 Python 环境）。
+
+## 使用方法
+
+### 基本用法
 
 ```bash
 # 执行指定 Excel 文件的所有用例
@@ -96,146 +43,103 @@ python main.py -f 用例_移动.xlsx
 # 执行指定 Excel 文件的特定 Sheet
 python main.py -f 用例_移动.xlsx -s install
 
-# 生成 PowerShell 执行脚本
-python main.py -ps1
+# 执行指定 Excel 文件的多个 Sheet（逗号分隔）
+python main.py -f 用例_移动.xlsx -s install,accesslog
+```
 
-# 生成 BAT 执行脚本
+### 生成批量执行脚本
+
+根据当前目录下的 Excel 文件自动生成执行脚本：
+
+```bash
+# 生成 BAT 脚本（保存到 exec_bat/ 目录）
 python main.py -bat
 
-# PyInstaller 打包
-pyinstaller main_exe.spec --clean
+# 生成 PowerShell 脚本（保存到 exec_ps1/ 目录）
+python main.py -ps1
 ```
 
-## 主要模块说明
+生成的脚本格式为 `main_exe-{Excel文件名}.bat` 和 `main_exe-{Excel文件名}-{Sheet名}.bat`，双击即可执行。
 
-### 1. business/install.py - DPI 安装升级模块
+### 命令行参数
 
-负责 DPI 设备的软件安装和升级流程。
-
-**关键函数**：
-```python
-install(p_excel, sheets, path, newpath, session_id)
-```
-
-### 2. core/excel_reader.py - Excel 解析器
-
-解析 Excel 测试用例文件，提取配置和测试用例。
-
-**返回数据结构**：
-```python
-{
-    'config': {...},                    # 全局配置
-    'sheet_name2cases': {...},          # 每个 sheet 的用例
-    'sheet_name2head2col': {...},      # 表头到列索引映射
-    'config_dev': {...}                # 设备配置
-}
-```
-
-### 3. device/dpi.py - DPI 设备控制类
-
-继承自 `SocketLinux`，提供 DPI 设备的完整控制能力。
-
-**关键方法**：
-```python
-class Dpi(SocketLinux):
-    def start()              # 启动 DPI
-    def stop()               # 停止 DPI
-    def restart()            # 重启 DPI
-    def mod_switch(mod)      # 模式切换
-    def upms_install(...)     # 升级安装
-    def dpibak()             # 配置备份
-```
-
-### 4. device/socket_linux.py - Socket 通信客户端
-
-基于自定义二进制协议的远程 Linux 服务器通信客户端。
-
-**协议格式**：`[4字节长度前缀][JSON载荷][gzip压缩数据]`
-
-**关键方法**：
-```python
-class SocketLinux:
-    def cmd(command, cwd=None)           # 执行远程命令
-    def get(remote_path, local_path)     # 下载文件
-    def put(local_path, remote_path)    # 上传文件
-    def scapy_send(pcap_path)          # 发送 pcap 包
-```
-
-### 5. io_handler/excel.py - Excel 操作封装
-
-基于 xlwings 的 Excel 操作封装。
-
-### 6. monitor/dpistat.py - DPI 状态解析
-
-解析 DPI 共享内存统计文件（`/dev/shm/xsa/*.stat`）。
-
-### 7. protocol/pcap_analyzer.py - PCAP 分析工具
-
-PCAP 文件分析和比对工具，支持：
-- 提取四元组
-- 流表转换
-- 包内容比对
-
-### 8. utils/rdm_extractor.py - RDM 发布路径提取
-
-从 RDM 平台提取发布路径信息。
-
-**关键函数**：
-```python
-get_multiple_projects_release_paths(projects, ...)
-save_versions_to_json(version_data, category, ...)
-```
-
-### 9. utils/common.py - 通用工具函数
-
-**关键函数**：
-```python
-get_base_dir()                           # 获取程序基准目录（支持 PyInstaller）
-setup_logging(log_file_path, logger_name) # 配置日志
-gettime(n=4)                             # 获取当前时间
-wait_until(func, expect_value, ...)       # 等待条件满足
-md5(data)                               # 计算 MD5
-```
-
-## 依赖项
-
-```
-xlwings>=0.30.0       # Excel 操作
-paramiko>=3.0.0       # SSH/SFTP
-scapy>=2.5.0          # 流量回放
-playwright>=1.40.0    # 浏览器自动化
-beautifulsoup4>=4.12.0 # HTML 解析
-ntplib>=0.4.0         # NTP 时间同步
-```
+| 参数 | 说明 |
+|------|------|
+| `-f, --file` | Excel 文件路径，例如 `用例_移动.xlsx` |
+| `-s, --sheet` | 指定执行的 Sheet 名称，不指定则执行所有可执行用例 |
+| `-bat` | 生成 BAT 批量执行脚本 |
+| `-ps1` | 生成 PowerShell 批量执行脚本 |
 
 ## Excel 测试用例格式
 
-Excel 文件包含多个 Sheet：
-- `install` - 安装/升级用例
-- `配置` - 设备配置
-- `设备初始化配置` - 初始化参数
-- 其他 Sheet - 测试用例
+### 文件结构
 
-**每个用例 Sheet 包含列**：
-- 用例ID - 用例唯一标识
-- 执行状态 - 执行结果（自动填写）
-- 结果 - Pass/Failed（自动填写）
+Excel 文件包含以下几类 Sheet：
 
-## 通信协议
+| Sheet 类型 | 说明 |
+|------------|------|
+| `配置` | 全局配置（设备 IP、账号密码、FTP 路径等） |
+| `设备初始化配置` | 设备初始化参数 |
+| `IP规范` | IP 地址规范定义 |
+| `install` | DPI 安装/升级用例 |
+| `accesslog` 等 | 日志类测试用例 |
+| `block` / `fz_block` | EU 策略测试用例 |
+| `mirrorvlan` | 镜像 VLAN 测试用例 |
+| `pcapdump` | PCAP 抓包测试用例 |
+| `bzip` | BZIP 压缩测试用例 |
 
-### Socket 协议（device/socket_linux.py）
+### 配置项说明
 
+在 `配置` Sheet 中定义全局配置，关键配置项：
+
+| 配置项 | 说明 | 示例 |
+|--------|------|------|
+| `ip` | DPI 设备 IP 地址 | `192.168.1.100` |
+| `port` | DPI 设备端口 | `6000` |
+| `username` / `password` | 设备登录凭证 | - |
+| `dpiversion_s` | 源版本号（升级/切换时） | `1.0.6.0-1` |
+| `dpiversion_d` | 目标版本号 | `1.0.6.0-2` |
+| `dpimode_s` / `dpimode_d` | 源/目标 DPI 模式 | `ise`、`nse` |
+| `target_version` | 自动获取最新版本 | `target_version` |
+
+### 测试结果
+
+执行完成后，程序会在 `report/` 目录下生成测试报告 Excel，包含：
+
+- 每条用例的 **Pass/Failed** 结果（绿色/红色标记）
+- **结果统计** Sheet，汇总各 Sheet 的执行数量、成功率、耗时
+
+## 依赖项
+
+| 库 | 用途 |
+|----|------|
+| xlwings >= 0.30.0 | Excel 操作 |
+| paramiko >= 3.0.0 | SSH/SFTP 连接 |
+| sshtunnel >= 0.4.0 | SSH 隧道 |
+| scapy >= 2.5.0 | 流量回放 |
+| ntplib >= 0.4.0 | NTP 时间同步 |
+| playwright >= 1.40.0 | 浏览器自动化 |
+| beautifulsoup4 >= 4.12.0 | HTML 解析 |
+
+## 打包为 EXE
+
+```bash
+pyinstaller main_exe.spec --clean
 ```
-[4字节网络字节序长度][JSON载荷][可选:gzip压缩数据]
-```
 
-### SSH 协议（device/ssh.py）
+打包后的 `versions.json` 需与 exe 放在同一目录。
 
-基于 Paramiko 的标准 SSH/SFTP 协议。
+## 最新版本
 
-## 注意事项
+**v1.1.0** - [下载](https://github.com/weihang1258/dpiAutoExcel/releases/tag/v1.1.0)
 
-1. **Windows only**：使用 xlwings，需要安装 Microsoft Excel
-2. **Socket 通信**：需要远程设备运行对应的 Agent 服务
-3. **SSH 通信**：需要配置 SSH 密钥或密码认证
-4. **Base directory**：`get_base_dir()` 支持 PyInstaller exe 和源码运行两种模式
+### 更新日志
+
+- feat: 统一日志系统架构，为各模块添加独立 logger
+- feat: 添加项目文档（README.md、CLAUDE.md）
+- refactor: 重构项目结构，分离核心模块到独立目录
+- refactor: 移动 extract_release_path.py 到 utils/ 目录并重命名
+- fix: 修复 IPv6 key 匹配问题和 bzip 日志提取设备选择错误
+- fix: 修复多个执行流程和打包配置问题
+- fix: 更新 bzip ipsegs 文件路径为 zcip_ipsegs.txt
+- chore: 更新 .gitignore，移除运行时目录和敏感文件的 git 追踪
