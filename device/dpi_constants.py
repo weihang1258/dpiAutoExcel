@@ -32,7 +32,7 @@ xsa_jsonfile = "/opt/dpi/xsaconf/xsa.json"
 fz_block_rulefile = "/opt/dpi/xsaconf/rule/fz_block.rule"
 overseaip_ipsegsfile = "/opt/dpi/xsaconf/rule/overseaip_ipsegs.txt"
 xdr_filter_rulefile = "/opt/dpi/xdrconf/rule/xdr_filter.rule"
-bzip_ipsegsfile = "/opt/dpi/xsaconf/rule/bzip_ipsegs.txt"
+bzip_ipsegsfile = "/opt/dpi/xsaconf/rule/zcip_ipsegs.txt"
 fz_action_txtfile = "/opt/dpi/xsaconf/rule/fz_action.txt"
 fz_template_txtfile = "/opt/dpi/xsaconf/rule/fz_template.txt"
 
