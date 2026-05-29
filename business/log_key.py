@@ -17,6 +17,7 @@ import json
 import logging
 import os
 import re
+import tempfile
 import time
 from utils.common import gettime, get_flow_timeout, wait_until, wait_not_until, setup_logging
 from utils.log_parser import monitorlog
@@ -34,11 +35,13 @@ from utils.crypto_helper import decrypt_file_load
 from utils.log_handler import DynamicFileHandler
 from utils.log_config import build_log_filename
 from utils.xml_helper import xml2dict, Xml
+from utils.kafka_avro_parser import parse_kafka_avro_file
 from device.dpi_constants import (
     uploadfile, reportfile, house_ipsegsfile, pcip_ipsegsfile,
     comon_inifile, ydcommoninfo_rulefile, commoninfo_rulefile,
     access_log_rulefile, xsa_jsonfile, fz_block_rulefile,
     overseaip_ipsegsfile, xdr_filter_rulefile,
+    fz_action_txtfile, ip_segment_txtfile,
     action2policyfile, src2logtype
 )
 
@@ -407,10 +410,43 @@ def log_key(p_excel: dict, sheets, path="用例", newpath=None,
         if config.get(f"{sheet_name}_casetype", None) == "idcfz_log":
             logtype = "5"
 
+        # gwfz_log 用例类型处理：加载 fz_block.rule、fz_action.txt、ip_segment.txt
+        if config.get(f"{sheet_name}_casetype", None) == "gwfz_log":
+            logger.info("gwfz_log 用例类型，加载反诈策略")
+            policys_gwfz = list()
+            for case_name, case in cases.items():
+                if not case[0].get("用例名") or str(case[0].get("执行状态")) != "1":
+                    continue
+                # fz_block.rule
+                if case[0].get("fz_block.rule"):
+                    policy = list(map(lambda x: re.sub(r"^\d+", case[0]['commandId'], x).encode("utf-8"),
+                                      case[0]["fz_block.rule"].strip().split("\n")))
+                    policys_gwfz += policy
+                # fz_action.txt
+                if case[0].get("fz_action.txt"):
+                    action_rules = case[0]["fz_action.txt"].strip().split("\n")
+                    action_rules = list(map(lambda x: x.encode("utf-8"), action_rules))
+                    logger.info(f"fz_action.txt加载：{case[0]['fz_action.txt'].strip()}")
+                    dpi_xsa.marex_policy_update(policy=action_rules, path=fz_action_txtfile, md5check=True)
+                # ip_segment.txt
+                if case[0].get("ip_segment.txt"):
+                    ipseg_rules = case[0]["ip_segment.txt"].strip().split("\n")
+                    ipseg_rules = list(map(lambda x: x.encode("utf-8"), ipseg_rules))
+                    logger.info(f"ip_segment.txt加载：{case[0]['ip_segment.txt'].strip()}")
+                    dpi_xsa.marex_policy_update(policy=ipseg_rules, path=ip_segment_txtfile, md5check=True)
+
+            if policys_gwfz:
+                logger.info("gwfz fz_block.rule加载")
+                logger.info(b"\n".join(policys_gwfz).decode("utf-8") if policys_gwfz else "No fz_block policies")
+                dpi_xsa.marex_policy_update(policy=policys_gwfz, path=fz_block_rulefile, md5check=True)
+                # wait_until(stat_dpi_xsa.adms_idc_debug2dict, str(len(policys_gwfz)), 2, 60, "adms_allrule_num")
+                time.sleep(3)
+            logtype = "5"
+
         # 提取关联的关键字
         keynames = config[sheet_name + "_keyname"].split(",")
         keyname2keyvalue = dict(zip(keynames, config[sheet_name + "_keyvalue"].split(",")))
-        if config.get(f"{sheet_name}_splitflag", None):
+        if config.get(f"{sheet_name}_splitflag", None) or config.get(f"{sheet_name}_fileparsertype") == "kafka_list":
             keyname2keyvalue_headNo = dict(zip(keynames, list(map(lambda x: heads.index(x), [keyname2keyvalue[i] for i in keynames]))))
             keyvalue_headNos = list(map(lambda x: keyname2keyvalue_headNo[x], keynames))
         else:
@@ -678,6 +714,54 @@ def log_key(p_excel: dict, sheets, path="用例", newpath=None,
                         act_log_dict[key].sort()
                     log_xml = "\n".join([log_xmlprefix] + act_log_dict[key] + [log_xmlsuffix])
                     act_log_dict[key] = [[log_xml]]
+            elif config.get(f"{sheet_name}_fileparsertype") == "kafka_list":
+                # Kafka Avro 二进制格式处理
+                logger.info("kafka_list 格式解析")
+
+                # 从远程设备下载 .avsc Schema 文件到本地临时文件
+                schema_remote_path = config[f"{sheet_name}_kafkaschema"]
+                logger.info(f"下载 Avro Schema: {schema_remote_path}")
+                schema_content = dpi_xsa.getfo(remotepath=schema_remote_path).read()
+                schema_local = os.path.join(tempfile.gettempdir(), "kafka_schema.avsc")
+                with open(schema_local, "wb") as f:
+                    f.write(schema_content)
+
+                # 调试用：在 /tmp/txt/kafka/ 目录保存解析后的明文
+                kafka_debug_dir = tmpdir.rstrip("/") + "/kafka"
+                if not logserver.isdir(kafka_debug_dir):
+                    logserver.mkdir(dir=kafka_debug_dir)
+
+                # 遍历每个已下载到 /tmp/txt 的日志文件
+                for name in response:
+                    # 下载二进制文件内容到本地临时文件
+                    file_content = logserver.getfo(remotepath=tmpdir.rstrip("/") + "/" + name).read()
+                    file_local = os.path.join(tempfile.gettempdir(), f"kafka_{name}")
+                    with open(file_local, "wb") as f:
+                        f.write(file_content)
+
+                    # 用 kafka_avro_parser 解析，得到 List[dict]
+                    records = parse_kafka_avro_file(file_local, schema_local, output_format="dict")
+                    logger.info(f"Kafka 解析完成: {name}，共 {len(records)} 条记录")
+
+                    # 调试用：将解析后的明文保存到 /tmp/txt/kafka/ 目录
+                    debug_remote = f"{kafka_debug_dir}/{name}"
+                    debug_lines = "\n".join(
+                        ["\t".join([str(record.get(h[4:], "")) for h in heads]) for record in records]
+                    )
+                    logserver.putfo(io.BytesIO(debug_lines.encode("utf-8")), debug_remote)
+                    logger.info(f"Kafka 解析明文已保存: {debug_remote}")
+
+                    # 将每条 Avro 记录转换为值列表，按 act_* 列顺序排列
+                    for record in records:
+                        fields = [str(record.get(h[4:], "")) for h in heads]
+                        key = "_".join([str(fields[i]) for i in keyvalue_headNos]).lower() if keyvalue_headNos else "log"
+                        if key in act_log_dict:
+                            act_log_dict[key].append(fields)
+                        else:
+                            act_log_dict[key] = [fields]
+
+                    os.remove(file_local)
+                os.remove(schema_local)
             else:
                 # 普通文本格式处理
                 log_lines = []

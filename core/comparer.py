@@ -127,7 +127,28 @@ def compare_exp(exp_log_list: list, act_log_list: list, case: list, head2col: di
                         result_list.append((case[i]["row"], head2col[k], v, (255, 255, 255)))
                 else:
                     exp_val = exp_log_list[i]["exp_" + name]
-                    if exp_val != v:
+                    if time_fields and k in time_fields:
+                        # time_fields 配置的时间字段：按时间范围比较
+                        if type(v) == str and re.match(r"\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d\.\d+", v):
+                            time_act = int(time.mktime(time.strptime(v, '%Y-%m-%d %H:%M:%S.%f')))
+                        elif type(v) == str and re.match(r"\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d", v):
+                            time_act = int(time.mktime(time.strptime(v, '%Y-%m-%d %H:%M:%S')))
+                        elif type(v) in (int, float) and v < 2000000000:
+                            time_act = int(v)
+                        elif type(v) in (int, float) and v >= 9999999999:
+                            time_act = int(str(int(v))[:10])
+                        else:
+                            mark.append(f"{k}：无法解析时间，实际值{v}")
+                            result_list.append((case[i]["row"], head2col[k], v, (255, 0, 0)))
+                            continue
+                        if time_act < time_s or time_act > time_e:
+                            mark.append(f"{k}：实际值{v}，时间不在范围内({time_s}-{time_e})")
+                            result_list.append((case[i]["row"], head2col[k], v, (255, 0, 0)))
+                            result_list.append((case[i]["row"], head2col[k.replace("act_", "exp_")],
+                                               exp_log_list[i][k.replace("act_", "exp_")], (255, 0, 0)))
+                        else:
+                            result_list.append((case[i]["row"], head2col[k], v, (255, 255, 255)))
+                    elif exp_val != v:
                         mark.append(f"{k}：实际值{v}，期望值{exp_val}")
                         result_list.append((case[i]["row"], head2col[k], v, (255, 0, 0)))
                         result_list.append((case[i]["row"], head2col[k.replace("act_", "exp_")],
