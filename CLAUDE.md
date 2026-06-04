@@ -25,6 +25,9 @@ python main.py -f 用例_移动.xlsx
 # Run specific sheet
 python main.py -f 用例_移动.xlsx -s install
 
+# Run multiple sheets (comma-separated)
+python main.py -f 用例_移动.xlsx -s install,accesslog
+
 # Generate batch execution scripts
 python main.py -bat
 python main.py -ps1
@@ -35,6 +38,8 @@ pyinstaller main_exe.spec --clean
 # Install dependencies
 pip install -r requirements.txt
 ```
+
+Requires Python 3.8+ and Windows (xlwings depends on Excel). After PyInstaller build, `versions.json` must be placed alongside the exe.
 
 ## Architecture
 
@@ -78,6 +83,32 @@ Excel Test Cases → core/excel_reader → business/* → core/result → Excel 
 - **Socket Protocol**: Uses struct-packed binary protocol with gzip-compressed JSON payloads
 - **Dynamic Logging**: `DynamicFileHandler` allows switching log files at runtime for per-case logging
 - **Stat Files**: DPI health is checked via `/dev/shm/xsa/*.stat` shared memory files
+- **Sheet Handler Registration**: Each sheet type maps to a handler class via `SHEET_HANDLERS` dict in `main.py`
+
+### Adding New Test Types
+1. Create a new module in `business/` implementing a handler class
+2. Register it in `SHEET_HANDLERS` in `main.py` mapping the sheet name to the handler
+3. The handler receives parsed Excel data from `core/excel_reader`, executes via device layer, and returns results through `core/result`
+
+### Socket Binary Protocol
+- **Request format**: `<4-byte big-endian length><gzip-compressed JSON payload>`
+- **Response format**: Plain JSON (not gzip-compressed)
+- **Type codes** (sent as `type` field in JSON): 0=scapy_send, 1=cmd, 7=isfile, 8=upload, 9=download, 10=sftp_upload, 11=sftp_download
+
+### Version Management
+- `versions.json` stores FTP paths indexed by `category > project > version`
+- Mode suffixes map to product categories:
+  - `is`/`isbns` → Information Security (信息安全)
+  - `bns`/`ns`/`bnsns` → Network Security (网络安全)
+  - `ds` → Data Security (数据安全)
+- `target_version` in Excel triggers auto-fetch from RDM platform via `utils/rdm_extractor.py`
+- Different package prefixes have different version extraction logic: `ACT-DPI-EU-*` vs `ACT-DPI-ISE-*`
+
+### Excel Test Case Structure
+- **Sheet names** define test types: `install`, `accesslog`, `monitor`, `block`, `pcapdump`, `bzip`, etc.
+- **Configuration sheet**: Contains device IP, credentials, mode, target version
+- **Device Init Config sheet**: Pre-test device setup commands
+- `core/excel_reader.parser_excel()` parses all sheets into a dict keyed by sheet name
 
 ## Important Modules
 
@@ -106,4 +137,7 @@ Excel Test Cases → core/excel_reader → business/* → core/result → Excel 
 - **Base directory**: `get_base_dir()` handles both PyInstaller exe and source modes
 - **Resource cleanup**: FTP, SSH connections use `__del__` for cleanup
 - **NTP sync**: `ntpget()` syncs remote DPI time before tests
-- **Binary protocol**: Messages are `<length><gzip(json)>` format, response is plain JSON
+- **No automated test suite**: Validation is done by running Excel test cases against real devices, not unit tests
+- **Report output**: Results are written to `report/` directory as color-coded Excel files with a statistics summary sheet
+- **Logging**: Each module creates its own logger via `setup_logging()`. `install.py` injects `DynamicFileHandler` into multiple module loggers at runtime for per-case log files
+- **RDM extraction**: `utils/rdm_extractor.py` uses Playwright (headless browser) to scrape version paths from the RDM platform, navigating iframes to reach project data

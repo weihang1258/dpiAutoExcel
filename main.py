@@ -77,6 +77,9 @@ SHEET_HANDLERS = {
     "vpn_block_inner": SheetHandler(log_key, "日志"),
     "dns_parse": SheetHandler(log_key, "日志"),
     "fz_filter": SheetHandler(log_key, "日志"),
+    "gwfz_filter": SheetHandler(log_key, "日志"),
+    "gwfz_monitor": SheetHandler(log_key, "日志"),
+    "gwfz_accesslog": SheetHandler(log_key, "日志"),
 
     # 策略类 sheet
     "block": SheetHandler(eu_policy, "策略"),
@@ -99,7 +102,7 @@ SHEET_HANDLERS = {
 SHEET_GROUPS = {
     "日志": ["accesslog", "s_accesslog", "monitor", "filter", "mirrorvlan_log",
             "pcapdump_log", "vpn_block", "vpn_block_kk", "vpn_block_inner",
-            "dns_parse", "fz_filter"],
+            "dns_parse", "fz_filter", "gwfz_filter"],
     "策略": ["block", "fz_block"],
     "其他": ["mirrorvlan", "pcapdump", "bzip"],
     "审计": ["audit"],
@@ -594,3 +597,4 @@ if __name__ == '__main__':
         run(excel_path=args.file, sheet=args.sheet)
     else:
         logger.warning("请使用参数 --help")
+        # run(excel_path="用例_gzfz_1050.xlsx", sheet="gwfz_accesslog")

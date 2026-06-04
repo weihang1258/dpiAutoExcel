@@ -11,6 +11,9 @@ sshtunnel>=0.4.0
 ntplib>=0.4.0
 scapy>=2.5.0
 
+# Avro 解析
+fastavro>=1.9.0
+
 # Web 自动化
 playwright>=1.40.0
 beautifulsoup4>=4.12.0
