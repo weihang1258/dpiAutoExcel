@@ -32,14 +32,17 @@ python main.py -f 用例_移动.xlsx -s install,accesslog
 python main.py -bat
 python main.py -ps1
 
-# Build Windows executable
+# Build Windows executable (recommended: full release pipeline)
+python build_release.py
+
+# Build exe only (quick, no packaging)
 pyinstaller main_exe.spec --clean
 
 # Install dependencies
 pip install -r requirements.txt
 ```
 
-Requires Python 3.8+ and Windows (xlwings depends on Excel). After PyInstaller build, `versions.json` must be placed alongside the exe.
+Requires Python 3.8+ and Windows (xlwings depends on Excel). After PyInstaller build, `versions.json` must be placed alongside the exe. See `打包操作文档.md` for detailed build instructions.
 
 ## Architecture
 
@@ -129,6 +132,8 @@ Excel Test Cases → core/excel_reader → business/* → core/result → Excel 
 | `data/xml_comparer.py` | XML 格式比对 |
 | `data/dict_comparer.py` | 字典格式比对 |
 | `utils/rdm_extractor.py` | RDM 平台发布路径提取 |
+| `build_release.py` | 完整发布构建脚本（PyInstaller + 复制文件 + 打包 zip） |
+| `打包操作文档.md` | 构建打包操作文档 |
 | `utils/common.py` | 通用工具函数 |
 
 ## Development Notes

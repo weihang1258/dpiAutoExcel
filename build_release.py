@@ -10,8 +10,8 @@ import zipfile
 PROJ_DIR = os.path.dirname(os.path.abspath(__file__))
 DIST_DIR = os.path.join(PROJ_DIR, "dist_release")
 BUILD_DIR = os.path.join(DIST_DIR, "build_temp")
-RELEASE_DIR = os.path.join(DIST_DIR, "dpiAutoExcel_v1.0.0")
-VERSION = "v1.0.0"
+RELEASE_DIR = os.path.join(DIST_DIR, "dpiAutoExcel_v1.1.1")
+VERSION = "v1.1.1"
 
 
 def run_cmd(cmd, cwd=None):
@@ -84,7 +84,7 @@ def main():
 
     # 5. 生成 README.txt
     print("\n=== 5. 生成 README.txt ===")
-    readme = """dpiAutoExcel 自动化测试工具 v1.0.0
+    readme = """dpiAutoExcel 自动化测试工具 v1.1.1
 =========================================
 
 【快速开始】
@@ -136,7 +136,7 @@ def main():
 
     # 6. 生成版本说明
     print("\n=== 6. 生成版本说明 ===")
-    changelog = """版本说明 - v1.0.0
+    changelog = """版本说明 - v1.1.1
 ==================
 
 本次发布：
